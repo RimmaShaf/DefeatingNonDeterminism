@@ -3,6 +3,10 @@
 	import Citation from '$lib/components/Citation.svelte';
 	import EquationBlock from '$lib/components/EquationBlock.svelte';
 	import MarginalNote from '$lib/components/MarginalNote.svelte';
+	import SimulationControlPanel from '$lib/components/SimulationControlPanel.svelte';
+	import BatchInvarianceCostChart from '$lib/components/modules/BatchInvarianceCostChart.svelte';
+	import FloatingPointSandbox from '$lib/components/modules/FloatingPointSandbox.svelte';
+	import KernelParallelismSimulator from '$lib/components/modules/KernelParallelismSimulator.svelte';
 	import { CITATION_ORDER, getCitation } from '$lib/content';
 </script>
 
@@ -32,8 +36,20 @@
 	</p>
 
 	<div class="article__meta">
-		Статус: контентные примитивы (Task 1.3). Далее — общий стор симуляций и модуль A.
+		Статус: Task 1.4–1.5 — глобальный стор симуляций, панель управления и заглушки модулей A/B/C. Далее — математическое
+		ядро (fp16/bf16) и модуль A.
 	</div>
+
+	<SimulationControlPanel />
+
+	<section class="modules-preview" aria-label="Заглушки интерактивных модулей">
+		<h3 class="modules-preview__title">Интерактивы (заглушки)</h3>
+		<div class="modules-preview__grid">
+			<FloatingPointSandbox />
+			<KernelParallelismSimulator />
+			<BatchInvarianceCostChart />
+		</div>
+	</section>
 
 	<ArticleSection sectionId="sec-float" title="1. Плавающая точка — это не «просто числа»">
 		{#snippet body()}
