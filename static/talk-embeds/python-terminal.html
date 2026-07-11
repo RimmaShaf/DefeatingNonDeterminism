@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Python Terminal Demo</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+  <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0d0e17;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 860px;
+    }
+
+    .eyebrow {
+      color: #414868;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .window {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+
+    .titlebar {
+      background: #1e1f2e;
+      padding: 11px 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px solid #1a1b2a;
+      user-select: none;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot.r { background: #ff5f57; }
+    .dot.y { background: #febc2e; }
+    .dot.g { background: #28c840; }
+
+    .win-title {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+      color: #414868;
+    }
+
+    #status {
+      font-size: 11px;
+      padding: 2px 10px;
+      border-radius: 20px;
+      background: #16171f;
+      color: #414868;
+      transition: all 0.2s;
+    }
+    #status.ready  { color: #9ece6a; background: rgba(158,206,106,0.12); }
+    #status.busy   { color: #e0af68; background: rgba(224,175,104,0.12); }
+    #status.error  { color: #f7768e; background: rgba(247,118,142,0.12); }
+
+    #terminal-wrap {
+      background: #1a1b26;
+      padding: 6px 4px 6px 8px;
+      min-height: 380px;
+    }
+
+    .toolbar {
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .toolbar-label {
+      color: #414868;
+      font-size: 11px;
+      margin-right: 2px;
+    }
+
+    .snip {
+      background: #1e1f2e;
+      border: 1px solid #252636;
+      color: #a9b1d6;
+      padding: 5px 13px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .snip:hover  { background: #252636; border-color: #7aa2f7; color: #7aa2f7; }
+    .snip:active { background: #2e3050; }
+
+    .clear-btn {
+      margin-left: auto;
+      background: transparent;
+      border: 1px solid #252636;
+      color: #414868;
+      padding: 5px 13px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .clear-btn:hover { border-color: #f7768e; color: #f7768e; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="eyebrow">Interactive Demo &mdash; Python 3.12 · Pyodide · WebAssembly</div>
+  <div class="window">
+    <div class="titlebar">
+      <div class="dot r"></div>
+      <div class="dot y"></div>
+      <div class="dot g"></div>
+      <div class="win-title">python3 &mdash; -i</div>
+      <div id="status">Loading…</div>
+    </div>
+    <div id="terminal-wrap">
+      <div id="terminal"></div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <span class="toolbar-label">Try:</span>
+    <button class="snip" onclick="runSnippet('hello')">hello world</button>
+    <button class="snip" onclick="runSnippet('fibonacci')">fibonacci</button>
+    <button class="snip" onclick="runSnippet('list_comp')">list comprehension</button>
+    <button class="snip" onclick="runSnippet('dataclass')">dataclass</button>
+    <button class="snip" onclick="runSnippet('random')">random</button>
+    <button class="snip" onclick="runSnippet('generators')">generators</button>
+    <button class="clear-btn" onclick="clearTerminal()">clear</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+<script>
+// ─── Snippets ────────────────────────────────────────────────────────────────
+const SNIPPETS = {
+  hello: `msg = "Hello, World!"
+print(msg)
+print("─" * len(msg))
+for i, ch in enumerate(msg):
+    print(f"  [{i:2d}] {ch!r}")`,
+
+  fibonacci: `def fib(n):
+    a, b = 0, 1
+    seq = []
+    for _ in range(n):
+        seq.append(a)
+        a, b = b, a + b
+    return seq
+
+result = fib(15)
+print("Fibonacci(15):", result)
+print("Sum:", sum(result))
+print("Max:", max(result))`,
+
+  list_comp: `# List comprehensions & dict comprehensions
+evens   = [x for x in range(20) if x % 2 == 0]
+squared = [x**2 for x in evens]
+table   = {x: x**2 for x in range(1, 8)}
+
+print("Evens:", evens)
+print("Squared:", squared)
+print("Squares table:", table)
+
+# Nested
+matrix = [[i * j for j in range(1, 5)] for i in range(1, 5)]
+for row in matrix:
+    print(row)`,
+
+  dataclass: `from dataclasses import dataclass, field
+
+@dataclass(order=True)
+class Point:
+    x: float
+    y: float
+    label: str = field(default="", compare=False)
+
+    def distance(self):
+        return (self.x**2 + self.y**2) ** 0.5
+
+    def __repr__(self):
+        return f"Point({self.x}, {self.y}) '{self.label}'"
+
+points = [
+    Point(3, 4, "A"),
+    Point(1, 1, "B"),
+    Point(0, 5, "C"),
+    Point(2, 0, "D"),
+]
+
+for p in sorted(points):
+    print(f"  {p}  distance={p.distance():.3f}")`,
+
+  random: `import random
+random.seed(42)
+
+# Sample & shuffle
+words = ["python", "wasm", "pyodide", "xterm", "demo", "browser"]
+random.shuffle(words)
+print("Shuffled:", words)
+print("Choice:", random.choice(words))
+print("Sample 3:", random.sample(words, 3))
+
+# Simulate 1000 dice rolls
+rolls = [random.randint(1, 6) for _ in range(1_000)]
+for face in range(1, 7):
+    count = rolls.count(face)
+    bar = "█" * (count // 8)
+    print(f"  {face}: {bar} ({count})")`,
+
+  generators: `def infinite_primes():
+    def is_prime(n):
+        if n < 2: return False
+        for i in range(2, int(n**0.5) + 1):
+            if n % i == 0: return False
+        return True
+
+    n = 2
+    while True:
+        if is_prime(n):
+            yield n
+        n += 1
+
+gen = infinite_primes()
+primes = [next(gen) for _ in range(20)]
+print("First 20 primes:", primes)
+
+# Generator expression — memory-efficient
+total = sum(x**2 for x in range(1, 101))
+print("Sum of squares 1–100:", total)`,
+};
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let pyodide   = null;
+let isReady   = false;
+let isBusy    = false;
+let currentLine  = '';
+let pendingLines = [];
+let history      = [];
+let histIdx      = -1;
+
+// ─── Terminal setup ───────────────────────────────────────────────────────────
+const term = new Terminal({
+  theme: {
+    background:   '#1a1b26',
+    foreground:   '#c0caf5',
+    cursor:       '#c0caf5',
+    cursorAccent: '#1a1b26',
+    selectionBackground: 'rgba(122,162,247,0.3)',
+    black:        '#32344a', red:     '#f7768e',
+    green:        '#9ece6a', yellow:  '#e0af68',
+    blue:         '#7aa2f7', magenta: '#ad8ee6',
+    cyan:         '#449dab', white:   '#787c99',
+    brightBlack:  '#444b6a', brightRed:     '#ff7a93',
+    brightGreen:  '#b9f27c', brightYellow:  '#ff9e64',
+    brightBlue:   '#7da6ff', brightMagenta: '#bb9af7',
+    brightCyan:   '#0db9d7', brightWhite:   '#acb0d0',
+  },
+  fontFamily: '"JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", monospace',
+  fontSize: 14,
+  lineHeight: 1.55,
+  cursorBlink: true,
+  cursorStyle: 'block',
+  scrollback: 2000,
+  convertEol: true,
+  allowProposedApi: true,
+});
+
+const fitAddon = new FitAddon.FitAddon();
+term.loadAddon(fitAddon);
+term.open(document.getElementById('terminal'));
+fitAddon.fit();
+window.addEventListener('resize', () => fitAddon.fit());
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const G  = s => `\x1b[32m${s}\x1b[0m`;   // green
+const DIM = s => `\x1b[38;5;243m${s}\x1b[0m`; // dim
+const RED = s => `\x1b[31m${s}\x1b[0m`;  // red
+
+function setStatus(text, cls = '') {
+  const el = document.getElementById('status');
+  el.textContent = text;
+  el.className   = cls;
+}
+
+function writePrompt() {
+  const ps = pendingLines.length > 0 ? DIM('... ') : G('>>> ');
+  term.write('\r\n' + ps);
+}
+
+function clearLine() {
+  if (currentLine.length) {
+    term.write('\b \b'.repeat(currentLine.length));
+    currentLine = '';
+  }
+}
+
+// ─── Execution ───────────────────────────────────────────────────────────────
+async function runCode(code) {
+  isBusy = true;
+  setStatus('Running…', 'busy');
+
+  try {
+    pyodide.runPython(`
+_cap_out.truncate(0); _cap_out.seek(0)
+_cap_err.truncate(0); _cap_err.seek(0)
+`);
+    await pyodide.loadPackagesFromImports(code);
+    await pyodide.runPythonAsync(code);
+
+    const out = pyodide.runPython('_cap_out.getvalue()');
+    const err = pyodide.runPython('_cap_err.getvalue()');
+
+    if (out) term.write('\r\n' + out.replace(/\n$/, '').replace(/\n/g, '\r\n'));
+    if (err) term.write('\r\n' + RED(err.replace(/\n$/, '').replace(/\n/g, '\r\n')));
+  } catch (e) {
+    const msg = String(e).replace(/\n$/, '').replace(/\n/g, '\r\n');
+    term.write('\r\n' + RED(msg));
+  }
+
+  isBusy = false;
+  setStatus('Ready', 'ready');
+}
+
+// ─── Enter handler ────────────────────────────────────────────────────────────
+async function handleEnter() {
+  const line = currentLine;
+  currentLine = '';
+
+  if (pendingLines.length > 0) {
+    if (line.trim() === '') {
+      // Blank line closes block
+      const code = pendingLines.join('\n');
+      pendingLines = [];
+      if (code.trim()) {
+        history.unshift(code);
+        histIdx = -1;
+        await runCode(code);
+      }
+    } else {
+      pendingLines.push(line);
+    }
+    writePrompt();
+    return;
+  }
+
+  if (!line.trim()) {
+    writePrompt();
+    return;
+  }
+
+  // Detect block openers (def, class, if, for, while, with, try, else, elif, except, finally)
+  const blockOpener = /:\s*$/.test(line.trimEnd());
+
+  if (blockOpener) {
+    pendingLines.push(line);
+    writePrompt();
+    return;
+  }
+
+  history.unshift(line);
+  histIdx = -1;
+  await runCode(line);
+  writePrompt();
+}
+
+// ─── Input handler ────────────────────────────────────────────────────────────
+term.onData(async data => {
+  if (!isReady || isBusy) return;
+
+  if (data === '\r') {
+    await handleEnter();
+  } else if (data === '\x7f') {
+    // Backspace
+    if (currentLine.length > 0) {
+      currentLine = currentLine.slice(0, -1);
+      term.write('\b \b');
+    }
+  } else if (data === '\x03') {
+    // Ctrl-C
+    pendingLines = [];
+    currentLine  = '';
+    term.write('\r\n' + RED('^C'));
+    writePrompt();
+  } else if (data === '\x0c') {
+    // Ctrl-L — clear
+    clearTerminal();
+  } else if (data === '\x1b[A') {
+    // Up — history
+    if (histIdx < history.length - 1) {
+      histIdx++;
+      clearLine();
+      currentLine = history[histIdx].split('\n')[0];
+      term.write(currentLine);
+    }
+  } else if (data === '\x1b[B') {
+    // Down — history
+    if (histIdx > 0) {
+      histIdx--;
+      clearLine();
+      currentLine = history[histIdx].split('\n')[0];
+      term.write(currentLine);
+    } else if (histIdx === 0) {
+      histIdx = -1;
+      clearLine();
+    }
+  } else if (data.startsWith('\x1b')) {
+    // Ignore other escape sequences
+  } else {
+    currentLine += data;
+    term.write(data);
+  }
+});
+
+// ─── Snippet runner ───────────────────────────────────────────────────────────
+window.runSnippet = async function(name) {
+  if (!isReady || isBusy) return;
+
+  const code = SNIPPETS[name];
+  if (!code) return;
+
+  clearLine();
+  pendingLines = [];
+
+  // Display snippet inline
+  const lines = code.split('\n');
+  term.write(lines[0]);
+  for (let i = 1; i < lines.length; i++) {
+    term.write('\r\n' + DIM('... ') + lines[i]);
+  }
+
+  history.unshift(code);
+  histIdx = -1;
+
+  await runCode(code);
+  writePrompt();
+};
+
+window.clearTerminal = function() {
+  term.clear();
+  pendingLines = [];
+  currentLine  = '';
+  term.write(DIM('Python 3.12 · Pyodide · type help() for help, Ctrl-C to interrupt'));
+  writePrompt();
+};
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+async function init() {
+  term.write(DIM('Loading Python runtime (Pyodide + WebAssembly)…'));
+
+  try {
+    pyodide = await loadPyodide({ stdout: () => {}, stderr: () => {} });
+
+    pyodide.runPython(`
+import sys, io
+_cap_out = io.StringIO()
+_cap_err = io.StringIO()
+sys.stdout = _cap_out
+sys.stderr = _cap_err
+`);
+
+    term.write('\r\x1b[2K'); // erase line
+    term.write(G('Python 3.12') + DIM(' (Pyodide · WebAssembly)'));
+    term.write('\r\n' + DIM('Type Python expressions below, or click a snippet above.'));
+    term.write('\r\n' + DIM('Ctrl-C to interrupt · Ctrl-L to clear · ↑↓ history'));
+
+    isReady = true;
+    setStatus('Ready', 'ready');
+    writePrompt();
+    term.focus();
+  } catch (err) {
+    term.write('\r\n' + RED('Failed to load Pyodide: ' + err.message));
+    setStatus('Error', 'error');
+  }
+}
+
+init();
+</script>
+</body>
+</html>

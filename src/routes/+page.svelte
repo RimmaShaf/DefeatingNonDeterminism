@@ -5,8 +5,14 @@
 	import MarginalNote from '$lib/components/MarginalNote.svelte';
 	import SimulationControlPanel from '$lib/components/SimulationControlPanel.svelte';
 	import BatchInvarianceCostChart from '$lib/components/modules/BatchInvarianceCostChart.svelte';
+	import DemoRecording from '$lib/components/modules/DemoRecording.svelte';
 	import FloatingPointSandbox from '$lib/components/modules/FloatingPointSandbox.svelte';
 	import KernelParallelismSimulator from '$lib/components/modules/KernelParallelismSimulator.svelte';
+	import LiveDeterminismDemo from '$lib/components/modules/LiveDeterminismDemo.svelte';
+	import PoemVarianceDemo from '$lib/components/modules/PoemVarianceDemo.svelte';
+	import QuantAccumulatorDemo from '$lib/components/modules/QuantAccumulatorDemo.svelte';
+	import WeightsFileGag from '$lib/components/modules/WeightsFileGag.svelte';
+	import ProofBlock from '$lib/components/ProofBlock.svelte';
 	import { CITATION_ORDER, getCitation } from '$lib/content';
 </script>
 
@@ -14,7 +20,7 @@
 	<title>The Determinism Gap</title>
 	<meta
 		name="description"
-		content="Интерактивная статья о недетерминизме LLM при temp=0 и batch invariance на уровне редукций."
+		content="An interactive article on LLM nondeterminism at temp=0 and batch invariance at the reduction level."
 	/>
 </svelte:head>
 
@@ -22,108 +28,166 @@
 	<div class="site-header__inner">
 		<h1 class="site-title">The Determinism Gap</h1>
 		<p class="site-subtitle">
-			Черновик каркаса статьи: типографика, марджиналии и место под интерактивы.
+			Article scaffold draft: typography, marginal notes, and slots for interactive demos.
 		</p>
 	</div>
 </header>
 
 <main class="article">
-	<h2 class="article__title">Почему вывод LLM «плавает» даже при temperature = 0</h2>
+	<h2 class="article__title">Why LLM output drifts even at temperature = 0</h2>
 	<p class="article__dek">
-		Эта статья будет строиться вокруг трёх идей: ассоциативность сложения в float, распределение работы по GPU и
-		фиксированное дерево редукций как цена детерминизма. Опорные материалы: <Citation citeId="defeating_nondeterminism_blog" /> и
+		This article is built around three ideas: non-associativity of float addition, how GPU work is distributed across SMs,
+		and a fixed reduction tree as the price of determinism. Key references: <Citation citeId="defeating_nondeterminism_blog" /> and
 		<Citation citeId="batch_invariant_ops" />.
 	</p>
 
 	<div class="article__meta">
-		Статус: Task 1.4–1.5 — глобальный стор симуляций, панель управления и заглушки модулей A/B/C. Далее — математическое
-		ядро (fp16/bf16) и модуль A.
+		Status: MVP complete — math core (fp16/bf16, reductions), modules A/B/C, proof block.
 	</div>
 
 	<SimulationControlPanel />
 
-	<section class="modules-preview" aria-label="Заглушки интерактивных модулей">
-		<h3 class="modules-preview__title">Интерактивы (заглушки)</h3>
-		<div class="modules-preview__grid">
-			<FloatingPointSandbox />
-			<KernelParallelismSimulator />
-			<BatchInvarianceCostChart />
-		</div>
-	</section>
-
-	<ArticleSection sectionId="sec-float" title="1. Плавающая точка — это не «просто числа»">
+	<ArticleSection sectionId="sec-weights" title="0. Open the weights file. Just look at it.">
 		{#snippet body()}
 			<p>
-				В арифметике вещественных чисел сложение ассоциативно. В float — нет: порядок округлений меняет результат.
-				Классический пример — сумма трёх чисел, где одно из них «слишком мало», чтобы пережить округление рядом с
-				огромным соседом.
+				The entire model is a file full of numbers. Billions of small numbers. Let's open it as text and…
+				zoom out. <em>(Yes, we staged this — but the numbers are plausible.)</em>
+			</p>
+			<WeightsFileGag />
+			<p>
+				Here's the thing: these numbers are multiplied by the same numbers — and sometimes produce <strong>different</strong> results.
+				Why?
+			</p>
+		{/snippet}
+	</ArticleSection>
+
+	<ArticleSection sectionId="sec-float" title="1. Floating-point is not just numbers">
+		{#snippet body()}
+			<p>
+				In real-number arithmetic, addition is associative. In float — it isn't: the rounding order changes the result.
+				The classic example: a sum of three numbers where one is "too small" to survive rounding next to a
+				much larger neighbor.
 			</p>
 			<EquationBlock tex={'(a + b) + c \\neq a + (b + c)'} />
 			<p>
-				Дальше мы сделаем песочницу, где можно перетаскивать слагаемые по дереву сложения и видеть, где именно
-				теряется единица.
+				Reorder the operands yourself — and watch exactly where the 1 disappears.
 			</p>
+			<FloatingPointSandbox />
 		{/snippet}
 		{#snippet marginal()}
 			<MarginalNote
 				id="note-nonassoc"
-				title="Ключевая интуиция"
-				content={'Float — это конечная точность. Округление после каждой операции превращает «алгебру» в последовательность приближений.'}
+				title="Key intuition"
+				content={'Float has finite precision. Rounding after every operation turns algebra into a sequence of approximations.'}
 			/>
 		{/snippet}
 	</ArticleSection>
 
-	<ArticleSection sectionId="sec-gpu" title="2. GPU: один запрос может быть «разрезан» между SM">
+	<ArticleSection sectionId="sec-gpu" title="2. GPU: one request can be split across SMs">
 		{#snippet body()}
 			<p>
-				При маленьком batch одна матричная операция может быть разбита так, что несколько streaming multiprocessors
-				вкладывают частичные суммы в общий аккумулятор. Если порядок вкладов не фиксирован, итог может чуть меняться
-				из-за порядка округлений — даже если «логика модели» формально одна и та же.
+				At small batch sizes, a single matrix operation can be split so that multiple streaming multiprocessors
+				contribute partial sums to a shared accumulator. If the contribution order isn't fixed, the result can shift slightly
+				due to rounding order — even when the model's "logic" is formally identical.
 			</p>
 			<p>
-				При большом batch чаще получается более «прямолинейное» распределение: меньше совместных редукций, меньше
-				гонок за порядком суммирования.
+				At larger batch sizes the work distribution is more "straightforward": fewer shared reductions, fewer
+				races over summation order.
 			</p>
+			<KernelParallelismSimulator />
 		{/snippet}
 		{#snippet marginal()}
 			<MarginalNote
 				id="note-atomic-story"
-				title="Упрощённая модель"
-				content={'Здесь мы намеренно рисуем мультфильм: реальные ядра сложнее. Цель — показать, где рождается зависимость результата от порядка редукции.'}
+				title="Simplified model"
+				content={'We are deliberately drawing a cartoon here: real kernels are more complex. The goal is to show where the dependence on reduction order originates.'}
+			/>
+		{/snippet}
+	</ArticleSection>
+
+	<ArticleSection sectionId="sec-quant" title='3. "But quantized models have fewer bits!"'>
+		{#snippet body()}
+			<p>
+				The intuition is: if weights are stored in int8, there's "nothing to lose" in precision — no overflow possible.
+				Let's test that. Take <em>the same</em> int8 weights and simply change the summation order.
+			</p>
+			<QuantAccumulatorDemo />
+			<p>
+				Quantization can actually <em>amplify</em> output drift: see <Citation citeId="quantization_instability" />.
+			</p>
+		{/snippet}
+		{#snippet marginal()}
+			<MarginalNote
+				id="note-quant"
+				title="Myth-bust"
+				content={'Dequantization (int8 × scale) is an exact operation. Nondeterminism lives in the accumulator where partial sums are added in fp16/fp32.'}
 			/>
 		{/snippet}
 	</ArticleSection>
 
 	<ArticleSection
 		sectionId="sec-invariance"
-		title="3. Batch Invariance: плата за битово-согласованную редукцию"
+		title="4. Batch Invariance: the cost of bitwise-consistent reduction"
 	>
 		{#snippet body()}
 			<p>
-				Идея batch invariance — заставить редукцию следовать фиксированному дереву независимо от batch size. Это
-				может снизить пиковую производительность, но выкупает предсказуемость: одинаковые входы и одинаковые настройки
-				должны давать одинаковый результат.
+				The idea behind batch invariance is to force the reduction to follow a fixed tree regardless of batch size. This
+				can lower peak throughput, but buys predictability: the same inputs with the same settings
+				should always produce the same result.
 			</p>
 			<EquationBlock
 				tex={'\\text{trade-off: peak FLOPS} \\rightarrow \\text{bitwise consistency}'}
-				caption="Схематично: обмен пиковой скорости на фиксированный порядок редукции."
+				caption="Schematically: trading peak speed for a fixed reduction order."
 			/>
 			<p>
-				Ниже по дорожной карте появится график «стоимости» и proof-блок в духе тестов из
-				<Citation citeId="batch_invariant_ops" />.
+				A proof block in the spirit of the tests from <Citation citeId="batch_invariant_ops" />: run it and confirm that in
+				invariant mode the divergence is strictly zero — bitwise.
 			</p>
+			<ProofBlock />
+			<p>And here is the throughput cost of that determinism:</p>
+			<BatchInvarianceCostChart />
 		{/snippet}
 		{#snippet marginal()}
 			<MarginalNote
 				id="note-dod"
-				title="Критерий готовности"
-				content={'Интерактивы должны быть связаны одним стором: batchSize, precisionMode, isBatchInvariant. Любое изменение мгновенно обновляет все модули.'}
+				title="Readiness criterion"
+				content={'The interactive modules should be wired to a single store: batchSize, precisionMode, isBatchInvariant. Any change should instantly update all modules.'}
+			/>
+		{/snippet}
+	</ArticleSection>
+
+	<ArticleSection sectionId="sec-finale" title="5. A deterministic LLM on your laptop — tonight">
+		{#snippet body()}
+			<p>
+				Finale: two runs of the same model at temperature = 0. First — divergence under concurrent load;
+				then — byte-identical output with a fixed seed, thread count, and a single isolated request.
+			</p>
+			<DemoRecording />
+			<p>
+				Script: <code>scripts/ollama-demo.sh</code> — run it at home, check the sha256 yourself.
+			</p>
+			<p>
+				This one is not a recording. A real local server running GPT-2 is live below: click the button and the
+				browser will send a request to an actual PyTorch process on your machine.
+			</p>
+			<LiveDeterminismDemo />
+			<p>
+				What if you remove the local GPU from the equation and ask the same thing of a proprietary
+				cloud API? Nondeterminism doesn't disappear — it just moves to the provider's side.
+			</p>
+			<PoemVarianceDemo />
+		{/snippet}
+		{#snippet marginal()}
+			<MarginalNote
+				id="note-finale"
+				title="Why a recording"
+				content={'The demo was recorded in advance: a conference stage and its Wi-Fi are the worst place for live inference. The script is reproducible locally.'}
 			/>
 		{/snippet}
 	</ArticleSection>
 
 	<section class="article-section article-section--references" aria-labelledby="sec-refs">
-		<h3 class="article-section__title" id="sec-refs">Источники</h3>
+		<h3 class="article-section__title" id="sec-refs">References</h3>
 		<ol class="references-list">
 			{#each CITATION_ORDER as citeKey (citeKey)}
 				{@const record = getCitation(citeKey)}

@@ -9,7 +9,7 @@ export const CITATIONS = {
 	defeating_nondeterminism_blog: {
 		id: 'defeating_nondeterminism_blog',
 		href: 'https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/',
-		label: 'Thinking Machines (блог)',
+		label: 'Thinking Machines (blog)',
 		title: 'Defeating Nondeterminism in LLM Inference'
 	},
 	batch_invariant_ops: {
@@ -17,15 +17,30 @@ export const CITATIONS = {
 		href: 'https://github.com/thinking-machines-lab/batch_invariant_ops',
 		label: 'batch_invariant_ops (GitHub)',
 		title: 'thinking-machines-lab/batch_invariant_ops'
+	},
+	quantization_instability: {
+		id: 'quantization_instability',
+		href: 'https://arxiv.org/pdf/2506.09501',
+		label: 'arXiv:2506.09501',
+		title: 'Output instability in quantized LLMs (arXiv:2506.09501)'
+	},
+	fpna_hpc_groq: {
+		id: 'fpna_hpc_groq',
+		href: 'https://arxiv.org/html/2408.05148v1',
+		label: 'arXiv:2408.05148',
+		title:
+			'Impacts of floating-point non-associativity on reproducibility for HPC and deep learning (ORNL / ETH / Groq)'
 	}
 } as const satisfies Record<string, CitationRecord>;
 
 export type CitationId = keyof typeof CITATIONS;
 
-/** Порядок вывода в блоке «Источники». */
+/** Display order in the "Sources" block. */
 export const CITATION_ORDER: readonly CitationId[] = [
 	'defeating_nondeterminism_blog',
-	'batch_invariant_ops'
+	'batch_invariant_ops',
+	'quantization_instability',
+	'fpna_hpc_groq'
 ] as const;
 
 export function getCitation(id: string): CitationRecord {

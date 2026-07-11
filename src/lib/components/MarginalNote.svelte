@@ -11,7 +11,7 @@
 <details class="marginal-note marginal-note--mobile">
 	<summary class="marginal-note__summary">
 		<span class="marginal-note__summary-title">{title}</span>
-		<span class="marginal-note__summary-hint">показать</span>
+		<span class="marginal-note__summary-hint">show</span>
 	</summary>
 	<div class="marginal-note__body">{content}</div>
 </details>

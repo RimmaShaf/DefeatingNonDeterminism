@@ -1,0 +1,17 @@
+{
+	"prompt": "Write a highly creative four-line poem about a clock that counts backward.",
+	"model": "openai/gpt-oss-120b",
+	"savedAt": "2026-07-11T13:56:00.123Z",
+	"runs": [
+		{
+			"index": 0,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to dawn’s first shy grin,",
+				"A backward clock hums where endings begin."
+			],
+			"latencyMs": 492.7525410056114
+		}
+	]
+}

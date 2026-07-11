@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BF16 addition — the mantissa falls off the shelf</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg1: #0a0e1f;  --bg2: #12183a;
+    --sign:  #ff9be3;  --sign-bg1:#6a3a6a;  --sign-bg2:#3a1f3a;
+    --exp:   #9bd8ff;  --exp-bg1:#3f6a90;   --exp-bg2:#1f2f3a;
+    --mant:  #9bffb1;  --mant-bg1:#3f7a4f;  --mant-bg2:#1f3a25;
+    --imp:   #c8a8c8;  --imp-bg1:#42305a;   --imp-bg2:#261a36;
+    --lost:  #ff5d6c;
+    --ink: #f2f4ff;  --dim: #8b93c0;  --wood:#6b4a2b; --wood-lo:#43301c;
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    background: radial-gradient(120% 90% at 50% 0%, var(--bg2) 0%, var(--bg1) 70%);
+    color: var(--ink);
+    font-family: 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
+    overflow-y: auto;
+    user-select: none;
+  }
+
+  /* ===== PAGE 1: Representations ===== */
+  #page1 {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3vh 4vw 4vh;
+    gap: 2vh;
+  }
+  #page1 header { text-align: center; width: 100%; }
+  h1 { font-size: clamp(15px, 2.3vw, 32px); font-weight: 700; color: #fff; }
+  h1 .accent { color: var(--mant); }
+
+  #formula {
+    margin: 1.2vh auto 0; max-width: min(96vw, 1100px); width: 100%;
+    background: linear-gradient(135deg, #11111d 0%, #161628 100%);
+    border: 1px solid #2a2a3a; border-radius: 10px;
+    padding: 0.8vh 1.4vw;
+  }
+  #formula .gf {
+    font-family: 'Consolas','Menlo',monospace; font-weight: 700; color: #fff;
+    font-size: clamp(12px, 1.6vw, 22px); letter-spacing: 0.02em;
+    display: flex; align-items: center; justify-content: center; gap: 0.5em 1.2em; flex-wrap: wrap;
+  }
+  #formula .gf sup { font-size: 0.62em; }
+  #formula .s { color: var(--sign); } #formula .e { color: var(--exp); } #formula .m { color: var(--mant); }
+  #formula .key { font-size: clamp(9px,1vw,13px); color: var(--dim); font-weight: 600; }
+  #formula .key i { display:inline-block; width:0.8em; height:0.8em; border-radius:3px; margin-right:0.25em; vertical-align:middle; }
+  #formula .key .ks { background: linear-gradient(145deg,var(--sign-bg1),var(--sign-bg2)); border:1px solid var(--sign); }
+  #formula .key .ke { background: linear-gradient(145deg,var(--exp-bg1),var(--exp-bg2));   border:1px solid var(--exp); }
+  #formula .key .km { background: linear-gradient(145deg,var(--mant-bg1),var(--mant-bg2)); border:1px solid var(--mant); }
+
+  /* repr cards */
+  #repr-display {
+    display: flex; gap: clamp(12px,2vw,36px); justify-content: center;
+    flex-wrap: wrap; width: 100%; max-width: 1200px;
+  }
+  .repr-card {
+    background: linear-gradient(135deg, #0f1222 0%, #161830 100%);
+    border: 1px solid #2a2a45; border-radius: 14px;
+    padding: clamp(12px,1.8vw,26px);
+    flex: 1 1 min(420px, 90vw);
+    display: flex; flex-direction: column; gap: 1.4vh;
+  }
+  .repr-card-title { font-size: clamp(15px,1.8vw,24px); font-weight: 800; letter-spacing: 0.03em; }
+  .repr-card-title.big-t { color: #ffcf9b; }
+  .repr-card-title.small-t { color: var(--mant); }
+
+  .repr-bit-groups { display: flex; align-items: flex-end; gap: clamp(6px,1vw,14px); flex-wrap: nowrap; }
+  .repr-bit-group { display: flex; flex-direction: column; align-items: center; gap: 0.5vh; }
+  .repr-bit-label {
+    font-size: clamp(7px, 0.8vw, 11px); letter-spacing: 0.05em;
+    text-transform: uppercase; font-weight: 700; text-align: center; line-height: 1.25;
+  }
+  .repr-bit-label.lbl-s { color: var(--sign); }
+  .repr-bit-label.lbl-e { color: var(--exp); }
+  .repr-bit-label.lbl-m { color: var(--mant); }
+  .repr-bit-label.lbl-i { color: var(--imp); }
+  .repr-inner-row { display: flex; gap: clamp(2px,0.3vw,4px); align-items: flex-end; }
+
+  /* static display cubes (page 1) */
+  .rcube {
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 14%; font-family: 'Consolas',monospace; font-weight: 800;
+    flex-shrink: 0; position: relative;
+  }
+  .rcube.rsolid {
+    box-shadow: inset 0 0.25em 0 rgba(255,255,255,0.4), inset 0 -0.25em 0 rgba(0,0,0,0.28), 0 0.28em 0 rgba(0,0,0,0.32);
+  }
+  .rcube.rsign { width:clamp(18px,2.2vw,30px); height:clamp(18px,2.2vw,30px); font-size:clamp(8px,1vw,14px);
+    background: linear-gradient(145deg,var(--sign-bg1),var(--sign-bg2)); color: var(--sign); }
+  .rcube.rexp  { width:clamp(13px,1.6vw,22px); height:clamp(13px,1.6vw,22px); font-size:clamp(6px,0.8vw,11px); }
+  .rcube.rexp.one  { background: linear-gradient(145deg,var(--exp-bg1),var(--exp-bg2)); color:#eaf6ff; }
+  .rcube.rexp.zero { background: rgba(60,110,150,0.12); border:1.5px dashed rgba(120,190,240,0.4); color:#7fb0d8; }
+  .rcube.rimp  { width:clamp(10px,1.2vw,17px); height:clamp(10px,1.2vw,17px); font-size:clamp(5px,0.65vw,9px);
+    background: linear-gradient(145deg,var(--imp-bg1),var(--imp-bg2)); color: var(--imp); opacity: 0.72; }
+  .rcube.rmant { width:clamp(16px,2vw,27px); height:clamp(16px,2vw,27px); font-size:clamp(7px,0.9vw,13px); }
+  .rcube.rmant.one  { background: linear-gradient(145deg,var(--mant-bg1),var(--mant-bg2)); color:#eafff0; }
+  .rcube.rmant.zero { background: rgba(60,140,80,0.10); border:1.5px dashed rgba(120,220,150,0.4); color:#7fce9a; }
+  .rcube .rdot { position:absolute; right:-0.38em; bottom:0.02em; font-size:1.2em; color:#fff; font-weight:800; pointer-events:none; }
+
+  .repr-formula-line {
+    font-family: 'Consolas','Menlo',monospace; font-size: clamp(12px,1.5vw,20px);
+    color: #d7dbf5; display: flex; align-items: baseline; gap: 0.3em; flex-wrap: wrap;
+  }
+  .repr-formula-line .s { color: var(--sign); }
+  .repr-formula-line .e { color: var(--exp); }
+  .repr-formula-line .m { color: var(--mant); }
+  .repr-formula-line b { color: #fff; font-size: 1.05em; }
+  .repr-formula-line .rn { color: var(--lost); font-size:0.85em; }
+
+  .scroll-cue {
+    margin-top: auto; padding-top: 3vh;
+    font-size: clamp(13px,1.5vw,20px); color: var(--dim);
+    text-decoration: none; letter-spacing: 0.06em; font-weight: 600;
+    animation: bob 1.8s ease-in-out infinite;
+  }
+  @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(7px)} }
+
+  /* ===== PAGE 2: Animation ===== */
+  #page2 {
+    height: 100vh;
+    display: flex; flex-direction: column;
+    background: radial-gradient(120% 90% at 50% 0%, var(--bg2) 0%, var(--bg1) 70%);
+  }
+
+  #p2-top { flex-shrink:0; text-align:center; padding:0.8vh 2vw 0.2vh; }
+  #equation {
+    font-family: 'Consolas','Menlo',monospace;
+    font-size: clamp(18px, 3.5vw, 52px); font-weight: 700; line-height: 1;
+    display: flex; justify-content: center; align-items: baseline; gap: 0.28em;
+    min-height: 1.1em;
+  }
+  #equation .big { color: #ffcf9b; } #equation .small { color: var(--mant); }
+  #equation .op  { color: var(--dim); }
+  #equation .res.lossy { color: var(--lost); } #equation .res.safe { color:#6bd88b; }
+
+  /* field */
+  #field { position: relative; flex: 1 1 auto; margin: 0 1.5vw; overflow: hidden; }
+
+  .plank {
+    position: absolute; border-radius: 5px;
+    background: linear-gradient(180deg, var(--wood), var(--wood-lo));
+    box-shadow: 0 6px 0 rgba(0,0,0,0.45), inset 0 2px 0 rgba(255,255,255,0.12);
+    z-index: 1;
+  }
+  .plank::after {
+    content:""; position:absolute; right:-3px; top:-4px; bottom:-8px; width:6px;
+    border-radius:3px; background: linear-gradient(180deg,#8a5a30,#2d1f12);
+    box-shadow: 0 0 14px rgba(255,120,60,0.4);
+  }
+  .plank.ctrl::after { display:none; }
+
+  .op-name {
+    position: absolute; z-index: 3; font-weight: 700; white-space: nowrap;
+    font-size: clamp(11px,1.4vw,19px); letter-spacing: 0.06em; pointer-events:none;
+  }
+  .op-name.big   { color: #ffcf9b; } .op-name.small { color: var(--mant); }
+
+  .op-repr {
+    position: absolute; z-index: 3; white-space: nowrap; pointer-events:none;
+    font-family: 'Consolas',monospace; font-weight: 600;
+    font-size: clamp(8px, 0.95vw, 13px); color: var(--dim); line-height: 1.3;
+  }
+  .op-repr .s { color: var(--sign); } .op-repr .e { color: var(--exp); } .op-repr .m { color: var(--mant); }
+
+  .zone-cap {
+    position: absolute; z-index: 3; text-align: center; pointer-events: none;
+    font-size: clamp(8px,0.95vw,13px); letter-spacing: 0.08em; line-height: 1.2;
+    text-transform: uppercase; font-weight: 700;
+  }
+  .zone-cap.s { color: var(--sign); } .zone-cap.e { color: var(--exp); } .zone-cap.m { color: var(--mant); }
+  .zone-cap small { display:block; color: var(--dim); font-weight: 600; letter-spacing: 0; text-transform: none; }
+
+  .exp-readout {
+    position: absolute; z-index: 3; text-align: center; pointer-events: none;
+    font-family: 'Consolas',monospace; font-weight: 800; color: var(--exp);
+    font-size: clamp(10px,1.25vw,18px);
+  }
+  .exp-readout.matched { color: #7be39c; }
+
+  .match-note {
+    position: absolute; z-index: 4; text-align: center; pointer-events: none;
+    font-family:'Consolas',monospace; font-weight: 800; line-height: 1.2;
+    font-size: clamp(9px,1vw,15px); color: var(--exp);
+  }
+  .match-note.ok { color: #7be39c; }
+
+  .edge-note {
+    position:absolute; z-index:3; text-align:center; pointer-events:none; line-height:1.25;
+    font-size: clamp(9px,1vw,14px); font-weight:700; letter-spacing:0.05em; color: var(--lost);
+  }
+  .floor-line { position:absolute; left:0; right:0; z-index:0; border-top:2px dashed rgba(255,93,108,0.35); }
+  .floor-label{ position:absolute; z-index:0; font-size:clamp(9px,1vw,14px); letter-spacing:0.18em;
+    text-transform:uppercase; font-weight:700; color: rgba(255,93,108,0.55); }
+
+  /* cubes (animation) */
+  .cube {
+    position: absolute; z-index: 5; border-radius: 14%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Consolas',monospace; font-weight:800; color: rgba(0,0,0,0.6);
+    will-change: transform;
+  }
+  .cube .d { text-shadow: 0 1px 0 rgba(255,255,255,0.25); }
+  .cube.solid {
+    box-shadow:
+      inset 0 0.26em 0 rgba(255,255,255,0.42),
+      inset 0 -0.28em 0 rgba(0,0,0,0.3),
+      0 0.3em 0 rgba(0,0,0,0.35),
+      0 0.45em 0.9em rgba(0,0,0,0.4);
+  }
+  .cube.sign { background: linear-gradient(145deg,var(--sign-bg1),var(--sign-bg2)); color: var(--sign); }
+  .cube.exp.one  { background: linear-gradient(145deg,var(--exp-bg1),var(--exp-bg2)); color:#eaf6ff; }
+  .cube.mant.one { background: linear-gradient(145deg,var(--mant-bg1),var(--mant-bg2)); color:#eafff0; }
+  .cube.imp      { background: linear-gradient(145deg,var(--imp-bg1),var(--imp-bg2)); color: var(--imp); opacity: 0.70; }
+
+  .cube.exp.zero  { background: rgba(60,110,150,0.12); border:2px dashed rgba(120,190,240,0.4); color:#7fb0d8; box-shadow:none; }
+  .cube.mant.zero { background: rgba(60,140,80,0.10); border:2px dashed rgba(120,220,150,0.4); color:#7fce9a; box-shadow:none; }
+
+  .cube.lost {
+    background: linear-gradient(145deg,#ff8a94,var(--lost),#b83744) !important;
+    border:none !important; color: rgba(0,0,0,0.5);
+    box-shadow: inset 0 0.26em 0 rgba(255,255,255,0.35), 0 0.3em 0 rgba(0,0,0,0.3);
+  }
+  .cube.exp.exp-matched { box-shadow: 0 0 0 2px #6bd88b, 0 0 12px rgba(107,216,139,0.6); }
+  .cube.static { transition: top 0.5s ease, opacity 0.5s ease; }
+  .cube.ghost  { opacity: 0 !important; transition: opacity 0.55s ease; }
+
+  .cube .radix-dot { position: absolute; right: -0.30em; bottom: 0.02em; font-size: 1.15em; color: #fff;
+    font-weight: 800; text-shadow: 0 1px 2px #000; pointer-events: none; }
+
+  .cube.roundup { animation: roundup 0.85s ease; }
+  @keyframes roundup {
+    0%   { filter: brightness(2.4) drop-shadow(0 0 10px #ffcf9b); }
+    100% { filter: brightness(1); }
+  }
+
+  /* banner */
+  #banner { flex-shrink:0; text-align:center; padding:0.4vh 4vw; min-height:5.5vh;
+    display:flex; flex-direction:column; justify-content:center; gap:0.2vh; }
+  #banner .verdict { font-size: clamp(13px,1.8vw,26px); font-weight:700; }
+  #banner .verdict.lossy { color: var(--lost); } #banner .verdict.safe { color:#6bd88b; }
+  #banner .sub { font-size: clamp(10px,1.2vw,17px); color: var(--dim); line-height:1.4; }
+  #banner .sub b.gold { color:#ffcf9b; } #banner .sub b.mant { color: var(--mant); }
+  #banner .sub .e { color: var(--exp); } #banner .sub .m { color: var(--mant); }
+
+  #compare { margin-top:0.3vh; display:none; justify-content:center; align-items:center;
+    gap: clamp(10px,2.4vw,38px); font-family:monospace; flex-wrap:wrap; }
+  #compare.show { display:flex; }
+  #compare .cc { font-size: clamp(12px,1.5vw,21px); font-weight:700; padding:0.3em 0.7em;
+    border-radius:8px; background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); }
+  #compare .r.zero { color: var(--lost); } #compare .r.keep { color:#6bd88b; }
+  #compare .neq { font-size: clamp(14px,1.8vw,26px); color:#ffcf9b; font-weight:800; }
+
+  /* controls */
+  footer { flex-shrink:0; display:flex; justify-content:center; align-items:center;
+    gap: clamp(5px,1vw,12px); padding: 0.8vh 2vw calc(0.8vh + env(safe-area-inset-bottom));
+    flex-wrap:wrap; background: rgba(0,0,0,0.25); border-top:1px solid rgba(255,255,255,0.06); }
+  .btn { font-family:inherit; font-weight:700; font-size:clamp(12px,1.3vw,17px); letter-spacing:0.03em;
+    padding:0.65em 1.2em; border-radius:999px; border:1px solid rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.06); color: var(--ink); cursor:pointer;
+    transition: transform .1s ease, background .15s ease, border-color .15s ease; }
+  .btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.3); }
+  .btn:active { transform: translateY(1px) scale(0.98); }
+  .btn.play { background: linear-gradient(145deg,#ffcf9b,#d98c1f); color:#221400; border-color:transparent;
+    font-size: clamp(12px,1.5vw,19px); padding:0.65em 1.6em; min-width: 9em; }
+  .btn.play:disabled { opacity:0.4; cursor:default; }
+  .seg { display:inline-flex; border-radius:999px; overflow:hidden; border:1px solid rgba(255,255,255,0.16); }
+  .seg button { font-family:inherit; font-weight:700; font-size:clamp(10px,1.15vw,15px); padding:0.6em 0.9em;
+    background:transparent; color:var(--dim); border:none; cursor:pointer; }
+  .seg button.active { background: rgba(255,255,255,0.14); color:#fff; }
+  .divider { width:1px; height:2em; background: rgba(255,255,255,0.14); margin:0 0.25vw; }
+  .chip { font-family:monospace; font-weight:700; font-size:clamp(10px,1.2vw,16px); padding:0.5em 0.85em;
+    border-radius:8px; border:1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04);
+    color:var(--ink); cursor:pointer; }
+  .chip.active { border-color:#ffcf9b; color:#ffcf9b; background: rgba(255,207,155,0.1); }
+  .chip:hover { border-color: rgba(255,255,255,0.35); }
+  .hint { position:fixed; bottom: calc(0.8vh + 4.2em); left:50%; transform:translateX(-50%);
+    font-size:clamp(10px,1.1vw,14px); color:var(--dim); opacity:0.55; pointer-events:none; white-space:nowrap; }
+  .hint kbd { font-family:monospace; background: rgba(255,255,255,0.1); border-radius:4px; padding:1px 6px; color:#fff; }
+</style>
+</head>
+<body>
+
+<!-- ===== PAGE 1: Representations ===== -->
+<section id="page1">
+  <header>
+    <h1>Inside a BF16 add — where the <span class="accent">mantissa falls off the shelf</span></h1>
+    <div id="formula">
+      <div class="gf">
+        value = (−1)<sup class="s">sign</sup> · 2<sup><span class="e">E − 127</span></sup> · <span class="m">1.mantissa</span>
+        <span class="key"><i class="ks"></i>sign&nbsp; <i class="ke"></i>exponent&nbsp; <i class="km"></i>mantissa</span>
+      </div>
+    </div>
+  </header>
+
+  <div id="repr-display"></div>
+
+  <a class="scroll-cue" href="#page2">↓ scroll to see the addition</a>
+</section>
+
+<!-- ===== PAGE 2: Animation ===== -->
+<section id="page2">
+  <div id="p2-top">
+    <div id="equation"></div>
+  </div>
+
+  <div id="field"></div>
+
+  <div id="banner">
+    <div class="verdict" id="verdict"></div>
+    <div class="sub" id="sub"></div>
+    <div id="compare">
+      <div class="cc">(a + b) − a = <span class="r zero" id="cmp-a">?</span></div>
+      <span class="neq">≠</span>
+      <div class="cc">(a − a) + b = <span class="r keep" id="cmp-b">?</span></div>
+      <span class="neq">→ not associative</span>
+    </div>
+  </div>
+
+  <footer>
+    <div class="seg" id="order-seg">
+      <button data-order="A" class="active">a + b</button>
+      <button data-order="B">(a − a) + b</button>
+    </div>
+    <div class="divider"></div>
+    <button class="chip active" data-preset="256,1">256 + 1</button>
+    <button class="chip" data-preset="256,1.5">256 + 1.5</button>
+    <button class="chip" data-preset="256,2">256 + 2</button>
+    <button class="chip" data-preset="512,1">512 + 1</button>
+    <button class="chip" data-preset="1024,3">1024 + 3</button>
+    <div class="divider"></div>
+    <button class="btn play" id="btn-play">▶ Step 1</button>
+    <button class="btn" id="btn-reset">⟲ Reset</button>
+  </footer>
+</section>
+
+<div class="hint"><kbd>Space</kbd> step · <kbd>R</kbd> reset · <kbd>O</kbd> order · <kbd>1–5</kbd> presets</div>
+
+<script>
+// ======================================================================
+// BF16 helpers
+// ======================================================================
+const _f32 = new Float32Array(1), _u32 = new Uint32Array(_f32.buffer);
+function toBf16Bits(x){ _f32[0]=x; let u=_u32[0];
+  const lsb=(u>>>16)&1, round=(u>>>15)&1, sticky=u&0x7FFF;
+  let r=(u>>>16)&0xFFFF; if(round&&(sticky||lsb)) r=(r+1)&0xFFFF; return r; }
+function bf(x){ _u32[0]=(toBf16Bits(x)&0xFFFF)<<16; return _f32[0]; }
+function fmt(x){ if(x===0) return '0'; if(Math.abs(x)>=1e6) return x.toExponential(2); return String(+x.toFixed(4)); }
+
+function expBits(trueExp){ return ((trueExp+127)&0xFF).toString(2).padStart(8,'0').split('').map(Number); }
+function sigBits(x){
+  const ax=Math.abs(x), e=Math.floor(Math.log2(ax));
+  let r=ax/Math.pow(2,e); const bits=[];
+  for(let i=0;i<8;i++){ if(r>=1){bits.push(1);r-=1;} else bits.push(0); r*=2; }
+  return {exp:e, bits, sign: x<0?1:0};
+}
+
+function reprFormulaHTML(value){
+  const v = bf(value), s = sigBits(v);
+  const mant = s.bits.slice(1).join('');
+  const signStr = s.sign ? '−1' : '+1';
+  const roundNote = (v !== value) ? ` <span class="rn">(${value} → ${fmt(v)})</span>` : '';
+  return `<span class="s">${signStr}</span> × 2<sup><span class="e">${s.exp}</span></sup> × <span class="m">1.${mant}</span> = <b>${fmt(v)}</b>${roundNote}`;
+}
+
+// ======================================================================
+// Geometry
+// ======================================================================
+const SIG = 8;
+const field   = document.getElementById('field');
+const eqEl    = document.getElementById('equation');
+const verdict = document.getElementById('verdict');
+const subEl   = document.getElementById('sub');
+const compare = document.getElementById('compare');
+const cmpAEl  = document.getElementById('cmp-a');
+const cmpBEl  = document.getElementById('cmp-b');
+const btnPlay = document.getElementById('btn-play');
+
+let geo = {};
+function layout(){
+  const W = field.clientWidth, H = field.clientHeight;
+  const col  = Math.max(24, Math.min(W/15.5, 108, H/6.2));
+  const mcube = col*0.84;
+  const impCube = mcube * 0.66;   // implicit leading-1 cube — smaller, greyed
+  const ecube = col*0.5;
+  const egap  = col*0.09;
+  const scube = col*0.44;
+  const pad    = col*0.35;
+  const signX  = pad;
+  const expX0  = signX + scube + col*0.45;
+  const expRegW = 8*ecube + 7*egap;
+  const x0     = expX0 + expRegW + col*0.6;
+  const plankRight = x0 + SIG*col;
+  geo = { W, H, col, mcube, impCube, ecube, egap, scube, signX, expX0, expRegW, x0, plankRight,
+    plankThick: Math.max(10, col*0.22),
+    bigY: H*0.26, smallY: H*0.57, floorY: H*0.90 };
+}
+function sigLeft(c){ return geo.x0 + c*geo.col + (geo.col-geo.mcube)/2; }
+function impLeft(c){ return geo.x0 + c*geo.col + (geo.col-geo.impCube)/2; }
+
+// ======================================================================
+// State
+// ======================================================================
+let state = { order:'A', big:256, small:1, bigSig:null, smallSig:null, expDiff:0,
+  shiftsDone:0, totalShifts:0,
+  cubes:[], zeroCubes:[], scaffold:{}, ops:{}, phase:'idle', seq:[] };
+const results = { A:null, B:null };
+function clearTimers(){ state.seq.forEach(clearTimeout); state.seq=[]; }
+
+// ======================================================================
+// Cube factory
+// ======================================================================
+function makeCube(bit, role, size, isSolid){
+  const el = document.createElement('div');
+  el.className = 'cube ' + role + ' ' + (bit ? 'one' : 'zero') + (isSolid ? ' solid' : '');
+  const d = document.createElement('span'); d.className='d'; d.textContent = bit; el.appendChild(d);
+  el.style.width = size+'px'; el.style.height = size+'px'; el.style.fontSize = (size*0.5)+'px';
+  field.appendChild(el);
+  return { el, bit, role, size,
+    x:0, y:0, rot:0, vx:0, vy:0, vrot:0, tx:0, ty:0,
+    doomed:false, phase:'idle', isImplicit:false, isZeroFill:false };
+}
+function paintXform(c){ c.el.style.transform = `translate(${c.x}px, ${c.y}px) rotate(${c.rot}deg)`; }
+function placeStatic(c, left, top){ c.el.classList.add('static'); c.el.style.left=left+'px'; c.el.style.top=top+'px'; }
+function setCubeBit(c, bit){
+  if(c.bit===bit) return; c.bit=bit;
+  c.el.querySelector('.d').textContent = bit;
+  c.el.classList.toggle('one', bit===1); c.el.classList.toggle('zero', bit===0);
+}
+
+// ======================================================================
+// Build one operand
+// ======================================================================
+function buildOperand(kind, value, shelfY){
+  const s = sigBits(bf(value));
+  const eb = expBits(s.exp);
+  const op = { kind, value, sig:s, signCube:null, expCubes:[], sigCubes:[] };
+
+  const sc = makeCube(s.sign, 'sign', geo.scube, true);
+  placeStatic(sc, geo.signX, shelfY - geo.scube);
+  op.signCube = sc;
+
+  op.expCubes = eb.map((b,i)=>{
+    const c = makeCube(b, 'exp', geo.ecube, b===1);
+    placeStatic(c, geo.expX0 + i*(geo.ecube+geo.egap), shelfY - geo.ecube);
+    return c;
+  });
+
+  op.sigCubes = s.bits.map((b,i)=>{
+    if(i === 0){
+      // Implicit leading 1: smaller, greyed
+      const c = makeCube(1, 'imp', geo.impCube, true);
+      c.isImplicit = true;
+      const dot = document.createElement('span'); dot.className='radix-dot'; dot.textContent='.';
+      c.el.appendChild(dot);
+      c.startCol = 0;
+      c.x = impLeft(0); c.y = shelfY - geo.impCube; paintXform(c);
+      return c;
+    } else {
+      const c = makeCube(b, 'mant', geo.mcube, b===1);
+      c.startCol = i;
+      c.x = sigLeft(i); c.y = shelfY - geo.mcube; paintXform(c);
+      return c;
+    }
+  });
+  return op;
+}
+
+// ======================================================================
+// Scaffold
+// ======================================================================
+function buildScaffold(){
+  field.innerHTML = '';
+  const mk = cls => { const d=document.createElement('div'); d.className=cls; field.appendChild(d); return d; };
+  const s = state.scaffold = {
+    bigExpPlank: mk('plank ctrl'), smallExpPlank: mk('plank ctrl'),
+    bigPlank: mk('plank'), smallPlank: mk('plank'),
+    bigName: mk('op-name big'), smallName: mk('op-name small'),
+    bigRepr: mk('op-repr'), smallRepr: mk('op-repr'),
+    capSign: mk('zone-cap s'), capExp: mk('zone-cap e'), capMant: mk('zone-cap m'),
+    roBig: mk('exp-readout'), roSmall: mk('exp-readout'),
+    matchNote: mk('match-note'),
+    edgeNote: mk('edge-note'),
+  };
+  s.bigName.textContent = 'BIG';
+  s.smallName.textContent = 'SMALL';
+  s.capSign.innerHTML = 'sign<small>±</small>';
+  s.capExp.innerHTML  = 'exponent<small>the scale · must match</small>';
+  s.capMant.innerHTML = 'significand<small>1 . mantissa — sits on the shelf</small>';
+  s.edgeNote.innerHTML = 'shelf edge<br>→ bits slide off';
+}
+function placeScaffold(){
+  const g = geo, s = state.scaffold;
+  const plankW = SIG*g.col + g.col*0.3;
+  for(const [p,y] of [[s.bigPlank,g.bigY],[s.smallPlank,g.smallY]]){
+    p.style.left=(g.x0-g.col*0.15)+'px'; p.style.top=y+'px';
+    p.style.width=plankW+'px'; p.style.height=g.plankThick+'px';
+  }
+  const eplankLeft = g.signX - g.col*0.15;
+  const eplankW = (g.expX0 + g.expRegW + g.col*0.1) - eplankLeft;
+  for(const [p,y] of [[s.bigExpPlank,g.bigY],[s.smallExpPlank,g.smallY]]){
+    p.style.left=eplankLeft+'px'; p.style.top=y+'px';
+    p.style.width=eplankW+'px'; p.style.height=g.plankThick+'px';
+    p.style.opacity='0.82';
+  }
+
+  const nameH = g.col * 0.4;
+  s.bigName.style.left   = g.signX+'px'; s.bigName.style.top   = (g.bigY   - g.mcube - nameH*2.2)+'px';
+  s.smallName.style.left = g.signX+'px'; s.smallName.style.top = (g.smallY - g.mcube - nameH*2.2)+'px';
+  s.bigRepr.style.left   = g.signX+'px'; s.bigRepr.style.top   = (g.bigY   - g.mcube - nameH*1.1)+'px';
+  s.smallRepr.style.left = g.signX+'px'; s.smallRepr.style.top = (g.smallY - g.mcube - nameH*1.1)+'px';
+
+  const capY = g.bigY + g.plankThick + g.col*0.28;
+  s.capSign.style.left = g.signX+'px'; s.capSign.style.width = g.scube+'px'; s.capSign.style.top = capY+'px';
+  s.capExp.style.left  = g.expX0+'px'; s.capExp.style.width  = g.expRegW+'px'; s.capExp.style.top = capY+'px';
+  s.capMant.style.left = g.x0+'px';    s.capMant.style.width = (SIG*g.col)+'px'; s.capMant.style.top = capY+'px';
+
+  s.roBig.style.left   = g.expX0+'px'; s.roBig.style.width  = g.expRegW+'px';
+  s.roBig.style.top    = (g.bigY   - g.ecube - g.col*0.42)+'px';
+  s.roSmall.style.left = g.expX0+'px'; s.roSmall.style.width = g.expRegW+'px';
+  s.roSmall.style.top  = (g.smallY - g.ecube - g.col*0.42)+'px';
+
+  s.matchNote.style.left = g.expX0+'px'; s.matchNote.style.width = g.expRegW+'px';
+  s.matchNote.style.top  = ((g.bigY+g.smallY)/2 - g.col*0.3)+'px';
+
+  s.edgeNote.style.left = (g.plankRight - g.col*0.25)+'px';
+  s.edgeNote.style.top  = (g.smallY + g.plankThick + 6)+'px';
+  s.edgeNote.style.width = (g.col*1.7)+'px';
+
+}
+function setReadout(el, e, matched){ el.innerHTML = `= 2<sup>${e}</sup>`; el.classList.toggle('matched', !!matched); }
+
+// ======================================================================
+// Equation
+// ======================================================================
+function renderEquation(mode, resultVal, isExact){
+  const b=state.big, s=state.small;
+  if(state.order==='A'){
+    const cls = mode==='done' ? (isExact ? 'safe' : 'lossy') : '';
+    const res = mode==='done' ? `<span class="res ${cls}">${fmt(resultVal)}</span>` : `<span class="op">?</span>`;
+    eqEl.innerHTML = `<span class="big">${b}</span><span class="op">+</span><span class="small">${s}</span><span class="op">=</span>${res}`;
+  } else {
+    const res = mode==='done' ? `<span class="res ${resultVal===bf(s)?'safe':'lossy'}">${fmt(resultVal)}</span>` : `<span class="op">?</span>`;
+    eqEl.innerHTML = `<span class="op">(</span><span class="big">${b}</span><span class="op">−</span><span class="big">${b}</span><span class="op">)+</span><span class="small">${s}</span><span class="op">=</span>${res}`;
+  }
+}
+
+// ======================================================================
+// Page 1 — static representation
+// ======================================================================
+function renderReprPage(){
+  const container = document.getElementById('repr-display');
+  container.innerHTML = '';
+
+  for(const [kind, value] of [['big', state.big], ['small', state.small]]){
+    const v = bf(value), s = sigBits(v), eb = expBits(s.exp);
+
+    const card = document.createElement('div');
+    card.className = 'repr-card';
+
+    const title = document.createElement('div');
+    title.className = `repr-card-title ${kind}-t`;
+    title.textContent = `${kind.toUpperCase()} = ${value}`;
+    card.appendChild(title);
+
+    const groups = document.createElement('div');
+    groups.className = 'repr-bit-groups';
+
+    // Sign
+    const sg = document.createElement('div'); sg.className = 'repr-bit-group';
+    sg.innerHTML = `<div class="repr-bit-label lbl-s">sign</div>`;
+    const sRow = document.createElement('div'); sRow.className = 'repr-inner-row';
+    const sCube = document.createElement('div');
+    sCube.className = `rcube rsign rsolid`;
+    sCube.textContent = s.sign;
+    sRow.appendChild(sCube); sg.appendChild(sRow); groups.appendChild(sg);
+
+    // Exponent
+    const eg = document.createElement('div'); eg.className = 'repr-bit-group';
+    eg.innerHTML = `<div class="repr-bit-label lbl-e">exponent<br><span style="color:var(--dim);font-weight:400;text-transform:none">(8 bits · scale)</span></div>`;
+    const eRow = document.createElement('div'); eRow.className = 'repr-inner-row';
+    eb.forEach(b => {
+      const c = document.createElement('div');
+      c.className = `rcube rexp ${b ? 'one rsolid' : 'zero'}`;
+      c.textContent = b;
+      eRow.appendChild(c);
+    });
+    eg.appendChild(eRow); groups.appendChild(eg);
+
+    // Significand
+    const mg = document.createElement('div'); mg.className = 'repr-bit-group';
+    mg.innerHTML = `<div class="repr-bit-label lbl-m">significand<br><span style="color:var(--dim);font-weight:400;text-transform:none">(implicit 1 · + 7 bits)</span></div>`;
+    const mRow = document.createElement('div'); mRow.className = 'repr-inner-row';
+    s.bits.forEach((b, i) => {
+      const c = document.createElement('div');
+      if(i === 0){
+        c.className = 'rcube rimp';
+        c.style.position = 'relative';
+        c.textContent = '1';
+        const dot = document.createElement('span'); dot.className='rdot'; dot.textContent='.';
+        c.appendChild(dot);
+      } else {
+        c.className = `rcube rmant ${b ? 'one rsolid' : 'zero'}`;
+        c.textContent = b;
+      }
+      mRow.appendChild(c);
+    });
+    mg.appendChild(mRow); groups.appendChild(mg);
+
+    card.appendChild(groups);
+
+    const fLine = document.createElement('div');
+    fLine.className = 'repr-formula-line';
+    fLine.innerHTML = reprFormulaHTML(value);
+    card.appendChild(fLine);
+
+    container.appendChild(card);
+  }
+}
+
+// ======================================================================
+// Play button state
+// ======================================================================
+function updatePlayBtn(){
+  if(state.phase === 'idle'){
+    btnPlay.disabled = false;
+    btnPlay.textContent = state.order === 'A' ? '▶ Compare exponents' : '▶ Step 1: Cancel BIG';
+  } else if(state.phase === 'compared'){
+    btnPlay.disabled = false;
+    btnPlay.textContent = state.order === 'A'
+      ? `▶ Shift → (${state.shiftsDone + 1}/${state.totalShifts})`
+      : '▶ Step 2: Add SMALL';
+  } else if(state.phase === 'running'){
+    btnPlay.disabled = true;
+    btnPlay.textContent = '…';
+  } else if(state.phase === 'done'){
+    btnPlay.disabled = true;
+    btnPlay.textContent = '✓ Done';
+  }
+}
+
+// ======================================================================
+// Reset
+// ======================================================================
+function reset(){
+  clearTimers();
+  state.phase = 'idle';
+  state.zeroCubes = [];
+  state.shiftsDone = 0;
+  state.bigSig   = sigBits(bf(state.big));
+  state.smallSig = sigBits(bf(state.small));
+  state.expDiff  = state.bigSig.exp - state.smallSig.exp;
+  state.totalShifts = state.expDiff;
+
+  buildScaffold(); layout(); placeScaffold();
+
+  state.ops.big   = buildOperand('big',   state.big,   geo.bigY);
+  state.ops.small = buildOperand('small', state.small, geo.smallY);
+  state.cubes = state.ops.small.sigCubes;
+
+  state.scaffold.bigName.textContent   = `BIG = ${state.big}`;
+  state.scaffold.smallName.textContent = `SMALL = ${state.small}`;
+  state.scaffold.bigRepr.innerHTML     = reprFormulaHTML(state.big);
+  state.scaffold.smallRepr.innerHTML   = reprFormulaHTML(state.small);
+  setReadout(state.scaffold.roBig,   state.bigSig.exp, false);
+  setReadout(state.scaffold.roSmall, state.smallSig.exp, false);
+  state.scaffold.matchNote.classList.remove('ok');
+  state.scaffold.matchNote.innerHTML = state.order==='A'
+    ? `exponents differ<br>by ${state.expDiff} ↕`
+    : `nothing to<br>match`;
+
+  updatePlayBtn();
+  renderEquation('idle');
+  verdict.textContent=''; verdict.className='verdict';
+  subEl.innerHTML = state.order==='A'
+    ? `BIG's exponent = 2<sup>${state.bigSig.exp}</sup>, SMALL's = 2<sup>${state.smallSig.exp}</sup>. They differ by <b>${state.expDiff}</b>. Press <b>Compare</b>, then step through each of the <b>${state.expDiff}</b> right-shifts one by one.`
+    : `Order B: <b class="gold">BIG − BIG</b> cancels first, so SMALL never has to shift. Press Step 1 to cancel BIG.`;
+  updateCompare();
+  renderReprPage();
+}
+
+// ======================================================================
+// Physics loop
+// ======================================================================
+let lastT = performance.now();
+function tick(now){
+  const dt = Math.min(0.032,(now-lastT)/1000); lastT=now;
+  const g=geo, slideSpeed=g.col*6.5;
+
+  let active=false;
+  for(const c of state.cubes){
+    if(c.phase==='moving'){
+      active=true;
+      const dx=c.tx-c.x, dy=c.ty-c.y, dist=Math.hypot(dx,dy), step=slideSpeed*dt;
+      if(dist<=step){ c.x=c.tx; c.y=c.ty; c.phase='rest'; }
+      else { c.x+=dx/dist*step; c.y+=dy/dist*step; }
+      if(c.doomed && (c.x + c.size/2) > g.plankRight){
+        c.phase='sliding'; c.vx=slideSpeed;
+      }
+      paintXform(c);
+    } else if(c.phase==='sliding'){
+      active=true;
+      c.x += c.vx*dt;
+      paintXform(c);
+      if(c.x > g.W + c.size){ c.phase='offscreen'; c.el.style.visibility='hidden'; }
+    }
+  }
+  if(!active && state.phase==='running') onSettled();
+  requestAnimationFrame(tick);
+}
+
+// ======================================================================
+// Step machine
+// ======================================================================
+function play(){
+  if(state.phase === 'running' || state.phase === 'done') return;
+  if(state.order === 'A'){
+    if(state.phase === 'idle')      playA_compare();
+    else if(state.phase === 'compared') doOneShift();
+  } else {
+    if(state.phase === 'idle')      playB_step1();
+    else if(state.phase === 'compared') playB_step2();
+  }
+}
+
+// Order A — compare: highlight exponent difference, set up shift stepping
+function playA_compare(){
+  state.phase = 'compared';
+  updatePlayBtn();
+
+  state.scaffold.roBig.classList.add('matched');
+  state.scaffold.roSmall.classList.add('matched');
+  setTimeout(()=>{
+    state.scaffold.roBig.classList.remove('matched');
+    state.scaffold.roSmall.classList.remove('matched');
+  }, 900);
+
+  subEl.innerHTML = `<b>Exponent gap = ${state.expDiff}.</b> BIG uses 2<sup>${state.bigSig.exp}</sup>; SMALL uses 2<sup>${state.smallSig.exp}</sup>. BF16 must shift SMALL's <span class="m">mantissa</span> right <b>${state.expDiff}</b> slot(s) — one press at a time. Zero fills from the left; cubes past the edge fall.`;
+}
+
+// Order A — one shift step: move every on-shelf cube 1 slot right
+function doOneShift(){
+  state.shiftsDone++;
+  state.phase = 'running';
+  updatePlayBtn();
+
+  const targetShift = state.shiftsDone;
+  const allDone = targetShift === state.totalShifts;
+
+  subEl.innerHTML = `<b>Shift ${targetShift}/${state.totalShifts}.</b> Every cube moves one slot right. ${allDone ? 'Last shift — cubes past the edge fall.' : `<span class="m">Zero</span> fills slot ${targetShift - 1}.`}`;
+
+  // Move each non-landed cube one slot right
+  for(const c of state.cubes){
+    if(c.phase === 'offscreen' || c.phase === 'sliding') continue;
+    const targetCol = c.startCol + targetShift;
+    c.doomed = targetCol >= SIG;
+    if(c.isImplicit){
+      c.tx = impLeft(targetCol); c.ty = geo.smallY - geo.impCube;
+    } else {
+      c.tx = sigLeft(targetCol); c.ty = geo.smallY - geo.mcube;
+    }
+    c.phase = 'moving';
+  }
+
+  // One zero-fill cube appears at the slot just vacated (slot targetShift-1)
+  const zc = makeCube(0, 'mant', geo.mcube, false);
+  zc.x = sigLeft(targetShift - 1); zc.y = geo.smallY - geo.mcube;
+  zc.isZeroFill = true;
+  paintXform(zc);
+  zc.el.style.opacity = '0';
+  state.zeroCubes.push(zc);
+  setTimeout(()=>{
+    zc.el.style.transition = 'opacity 0.4s ease';
+    zc.el.style.opacity = '1';
+  }, 80);
+
+  // Tick exponent register up by 1
+  const newExp = state.smallSig.exp + targetShift;
+  expBits(newExp).forEach((b,i)=> setCubeBit(state.ops.small.expCubes[i], b));
+  setReadout(state.scaffold.roSmall, newExp, allDone);
+  if(allDone){
+    state.ops.small.expCubes.forEach(c=>c.el.classList.add('exp-matched'));
+    state.scaffold.roSmall.classList.add('matched');
+    state.scaffold.roBig.classList.add('matched');
+    state.scaffold.matchNote.classList.add('ok');
+    state.scaffold.matchNote.innerHTML = '✓ exponents<br>matched';
+  }
+}
+
+// Order B — step 1: cancel BIG
+function playB_step1(){
+  state.phase = 'compared';
+  updatePlayBtn();
+
+  const big = state.ops.big;
+  [...big.sigCubes, ...big.expCubes, big.signCube].forEach(c=>c.el.classList.add('ghost'));
+  state.scaffold.roBig.style.opacity = '0.25';
+  state.scaffold.matchNote.classList.add('ok');
+  state.scaffold.matchNote.innerHTML = 'no giant →<br>no shift ✓';
+
+  subEl.innerHTML = `<b class="gold">BIG − BIG = 0</b>. The top shelf vanishes. Press <b>Step 2</b> to add SMALL onto the empty shelf.`;
+}
+
+// Order B — step 2: animate SMALL moving up
+function playB_step2(){
+  state.phase = 'running';
+  updatePlayBtn();
+
+  subEl.innerHTML = `Now <b class="mant">+ SMALL</b> onto the empty shelf. Its <span class="e">exponent</span> (2<sup>${state.smallSig.exp}</sup>) is untouched — every <span class="m">mantissa</span> cube keeps its place.`;
+
+  for(const c of state.cubes){
+    c.doomed = false;
+    c.tx = c.x;
+    c.ty = c.isImplicit ? (geo.bigY - geo.impCube) : (geo.bigY - geo.mcube);
+    c.phase = 'moving';
+  }
+
+  const small = state.ops.small;
+  small.signCube.el.style.top  = (geo.bigY - geo.scube)+'px';
+  small.expCubes.forEach(c=> c.el.style.top=(geo.bigY - geo.ecube)+'px');
+  state.scaffold.roSmall.style.transition = 'top 0.5s ease';
+  state.scaffold.roSmall.style.top = (geo.bigY - geo.ecube - geo.col*0.42)+'px';
+}
+
+// ======================================================================
+// Morph result shelf (round-up flash)
+// ======================================================================
+function morphResultShelf(sum){
+  const rs = sigBits(sum);
+  if(rs.exp !== state.bigSig.exp) return;
+  const big = state.ops.big;
+  rs.bits.forEach((b,i)=>{
+    const bit = i===0 ? 1 : b;
+    const c = big.sigCubes[i];
+    if(c.bit !== bit){
+      setCubeBit(c, bit);
+      c.el.classList.toggle('solid', bit===1);
+      c.el.classList.remove('roundup'); void c.el.offsetWidth; c.el.classList.add('roundup');
+    }
+  });
+}
+
+function onSettled(){
+  // Order A: if more shifts remain, go back to 'compared' so the user presses again
+  if(state.order==='A' && state.shiftsDone < state.totalShifts){
+    state.phase = 'compared';
+    updatePlayBtn();
+    subEl.innerHTML = `Shift ${state.shiftsDone}/${state.totalShifts} done. ${state.totalShifts - state.shiftsDone} slot(s) left — press <b>Shift →</b> to continue.`;
+    return;
+  }
+  state.phase = 'done';
+  updatePlayBtn();
+  if(state.order==='A'){
+    const sum    = bf(bf(state.big)+bf(state.small));
+    const base   = bf(state.big);
+    const contrib = bf(sum - base);
+    const step   = Math.pow(2, state.bigSig.exp-(SIG-1));
+    const anyOnShelf = state.cubes.some(c => c.phase === 'rest');
+    const isExact    = contrib === bf(state.small);
+    renderEquation('done', sum, isExact);
+    if(anyOnShelf) morphResultShelf(sum);
+    state.scaffold.bigName.textContent = `RESULT = ${fmt(sum)}`;
+    results.A = contrib;
+
+    if(contrib === 0){
+      verdict.className='verdict lossy';
+      verdict.innerHTML = `The whole of ${state.small} fell off. &nbsp; ${state.big} + ${state.small} = ${fmt(sum)}`;
+      subEl.innerHTML = `After aligning, every cube of <b class="mant">SMALL</b> landed past the shelf's last slot (notch = ${step}) and slid away. Less than half a notch survived → rounds to zero. <b>(${state.big}+${state.small}) − ${state.big} = 0</b>.`;
+    } else if(!isExact){
+      verdict.className='verdict lossy';
+      verdict.innerHTML = `Rounded, not kept. &nbsp; ${state.big} + ${state.small} = ${fmt(sum)}`;
+      subEl.innerHTML = `SMALL's cubes all slid off — but the discarded value was <b>more than half a notch</b> (notch = ${step}), so BF16 rounds up: <b>(${state.big}+${state.small}) = ${fmt(sum)}</b>. The contribution is ${fmt(contrib)}, not the original ${fmt(bf(state.small))}.`;
+    } else {
+      verdict.className='verdict safe';
+      verdict.innerHTML = `It fit exactly. &nbsp; ${state.big} + ${state.small} = ${fmt(sum)}`;
+      subEl.innerHTML = `SMALL landed on an exact shelf notch, so <b>(${state.big}+${state.small}) − ${state.big} = ${fmt(contrib)}</b>. Try <b>256 + 1</b> (vanishes) or <b>256 + 1.5</b> (rounds up).`;
+    }
+  } else {
+    const result = bf(bf(bf(state.big)-bf(state.big))+bf(state.small));
+    renderEquation('done', result);
+    verdict.className='verdict safe';
+    verdict.innerHTML = `Nothing lost. &nbsp; (${state.big} − ${state.big}) + ${state.small} = ${fmt(result)}`;
+    subEl.innerHTML = `Because <b class="gold">BIG</b> cancelled first, SMALL's exponent never changed and no mantissa cube moved. Same three numbers, different answer.`;
+    results.B = result;
+  }
+  updateCompare();
+}
+
+function updateCompare(){
+  if(results.A!==null && results.B!==null){
+    cmpAEl.textContent=fmt(results.A); cmpBEl.textContent=fmt(results.B);
+    cmpAEl.className='r '+(results.A===0?'zero':'keep');
+    compare.classList.toggle('show', results.A!==results.B);
+  } else compare.classList.remove('show');
+}
+
+// ======================================================================
+// Controls
+// ======================================================================
+document.getElementById('btn-play').addEventListener('click', play);
+document.getElementById('btn-reset').addEventListener('click', reset);
+document.querySelectorAll('#order-seg button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#order-seg button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); state.order=btn.dataset.order; reset();
+  });
+});
+const chips=[...document.querySelectorAll('.chip')];
+chips.forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    chips.forEach(c=>c.classList.remove('active')); chip.classList.add('active');
+    const [b,s]=chip.dataset.preset.split(',').map(Number);
+    state.big=b; state.small=s; results.A=results.B=null; reset();
+  });
+});
+document.addEventListener('keydown',(e)=>{
+  if(e.key===' '||e.key==='ArrowRight'){
+    e.preventDefault();
+    if(state.phase==='idle'||state.phase==='compared') play();
+  }
+  else if(e.key==='r'||e.key==='R'||e.key==='ArrowLeft'||e.key==='Backspace'){ e.preventDefault(); reset(); }
+  else if(e.key==='o'||e.key==='O'){ e.preventDefault(); const n=state.order==='A'?'B':'A'; document.querySelector(`#order-seg button[data-order="${n}"]`).click(); }
+  else if(e.key>='1'&&e.key<='9'){ const i=+e.key-1; if(chips[i]) chips[i].click(); }
+});
+let rz; window.addEventListener('resize',()=>{ clearTimeout(rz); rz=setTimeout(reset,150); });
+
+// boot
+layout(); reset(); requestAnimationFrame(tick);
+</script>
+</body>
+</html>

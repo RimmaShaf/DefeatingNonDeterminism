@@ -1,4 +1,4 @@
-import adapter from '@sveltejs/adapter-auto';
+import adapter from '@sveltejs/adapter-static';
 import { relative, sep } from 'node:path';
 
 /** @type {import('@sveltejs/kit').Config} */
@@ -14,10 +14,16 @@ const config = {
 		}
 	},
 	kit: {
-		// adapter-auto only supports some environments, see https://svelte.dev/docs/kit/adapter-auto for a list.
-		// If your environment is not supported, or you settled on a specific environment, switch out the adapter.
-		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
-		adapter: adapter()
+		// Static build for GitHub Pages. Dev mode (`npm run dev`) ignores the
+		// adapter entirely — localhost keeps live API routes and root paths.
+		// strict: false lets the localhost-only /api/*/live POST routes be
+		// omitted from the static output instead of failing the build.
+		adapter: adapter({ strict: false }),
+		paths: {
+			// Set only by the Pages workflow (e.g. /DefeatingNonDeterminism);
+			// empty locally so nothing changes for `npm run dev`.
+			base: process.env.BASE_PATH ?? ''
+		}
 	}
 };
 

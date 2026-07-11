@@ -1,0 +1,140 @@
+{
+  "cells": [
+    {
+      "model": "gemma4_latest",
+      "provider": "ollama",
+      "prompt_id": "math_det",
+      "prompt_text": "",
+      "category": "",
+      "temperature": 0.0,
+      "unit": "token",
+      "n_ok": 5,
+      "n_excluded": 0,
+      "status_counts": {
+        "ok": 5
+      },
+      "mean_len": 3.0,
+      "cdf_pairwise": [
+        {
+          "x": 3,
+          "p": 0.1
+        },
+        {
+          "x": 3,
+          "p": 0.2
+        },
+        {
+          "x": 3,
+          "p": 0.3
+        },
+        {
+          "x": 3,
+          "p": 0.4
+        },
+        {
+          "x": 3,
+          "p": 0.5
+        },
+        {
+          "x": 3,
+          "p": 0.6
+        },
+        {
+          "x": 3,
+          "p": 0.7
+        },
+        {
+          "x": 3,
+          "p": 0.8
+        },
+        {
+          "x": 3,
+          "p": 0.9
+        },
+        {
+          "x": 3,
+          "p": 1.0
+        }
+      ],
+      "lcp_depths": [
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "tree": {
+        "count": 5,
+        "children": {
+          "'51…+1'": {
+            "token": "51…+1",
+            "count": 5,
+            "children": {}
+          }
+        }
+      },
+      "cfg8": "c0d5e4d2"
+    },
+    {
+      "model": "gemma4_latest",
+      "provider": "ollama",
+      "prompt_id": "math_det",
+      "prompt_text": "",
+      "category": "",
+      "temperature": 0.7,
+      "unit": "token",
+      "n_ok": 4,
+      "n_excluded": 1,
+      "status_counts": {
+        "ok": 4,
+        "empty": 1
+      },
+      "mean_len": 3.0,
+      "cdf_pairwise": [
+        {
+          "x": 3,
+          "p": 0.16666666666666666
+        },
+        {
+          "x": 3,
+          "p": 0.3333333333333333
+        },
+        {
+          "x": 3,
+          "p": 0.5
+        },
+        {
+          "x": 3,
+          "p": 0.6666666666666666
+        },
+        {
+          "x": 3,
+          "p": 0.8333333333333334
+        },
+        {
+          "x": 3,
+          "p": 1.0
+        }
+      ],
+      "lcp_depths": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "tree": {
+        "count": 4,
+        "children": {
+          "'51…+1'": {
+            "token": "51…+1",
+            "count": 4,
+            "children": {}
+          }
+        }
+      },
+      "cfg8": "5cb357ae"
+    }
+  ],
+  "generated_at": 1782289725.117985,
+  "harness_version": "0.1.0"
+}

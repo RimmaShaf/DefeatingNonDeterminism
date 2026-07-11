@@ -23,8 +23,8 @@
 	}
 </script>
 
-<section class="simulation-panel" aria-label="Параметры симуляций">
-	<h3 class="simulation-panel__title">Параметры симуляций</h3>
+<section class="simulation-panel" aria-label="Simulation Parameters">
+	<h3 class="simulation-panel__title">Simulation Parameters</h3>
 
 	<div class="simulation-panel__grid">
 		<div class="simulation-panel__field">
@@ -44,7 +44,7 @@
 		</div>
 
 		<fieldset class="simulation-panel__fieldset">
-			<legend class="simulation-panel__legend">Точность</legend>
+			<legend class="simulation-panel__legend">Precision</legend>
 			<div class="simulation-panel__segment">
 				<button
 					type="button"
