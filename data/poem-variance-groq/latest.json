@@ -1,17 +1,1007 @@
 {
 	"prompt": "Write a highly creative four-line poem about a clock that counts backward.",
 	"model": "openai/gpt-oss-120b",
-	"savedAt": "2026-07-11T13:56:00.123Z",
+	"savedAt": "2026-07-12T03:02:31.170Z",
 	"runs": [
 		{
 			"index": 0,
 			"lines": [
 				"Tick‑tock, the hourglass sighs in reverse,",
 				"Hands chase their shadows, unspooling time’s curse.",
-				"Midnight rewinds to dawn’s first shy grin,",
-				"A backward clock hums where endings begin."
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
 			],
-			"latencyMs": 492.7525410056114
+			"latencyMs": 577.9239160120487
+		},
+		{
+			"index": 1,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 566.3578750044107
+		},
+		{
+			"index": 2,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 767.0749579966068
+		},
+		{
+			"index": 3,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 563.5390419960022
+		},
+		{
+			"index": 4,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 653.2850840091705
+		},
+		{
+			"index": 5,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 474.0466659963131
+		},
+		{
+			"index": 6,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 455.58229100704193
+		},
+		{
+			"index": 7,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 473.11570900678635
+		},
+		{
+			"index": 8,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 455.4009580016136
+		},
+		{
+			"index": 9,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 454.08437499403954
+		},
+		{
+			"index": 10,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 430.29220800101757
+		},
+		{
+			"index": 11,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Each second a secret, un‑aging, un‑kind."
+			],
+			"latencyMs": 518.507541000843
+		},
+		{
+			"index": 12,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 431.88470800220966
+		},
+		{
+			"index": 13,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 518.0214159935713
+		},
+		{
+			"index": 14,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 429.1949580013752
+		},
+		{
+			"index": 15,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑dance, un‑spooling the mind."
+			],
+			"latencyMs": 506.5271250009537
+		},
+		{
+			"index": 16,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 447.6973330080509
+		},
+		{
+			"index": 17,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑dance, un‑spooling the mind."
+			],
+			"latencyMs": 446.80583399534225
+		},
+		{
+			"index": 18,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Each second a secret, un‑aging, un‑kind."
+			],
+			"latencyMs": 446.5711669921875
+		},
+		{
+			"index": 19,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 268.9164999872446
+		},
+		{
+			"index": 20,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 508.6878750026226
+		},
+		{
+			"index": 21,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 437.30766600370407
+		},
+		{
+			"index": 22,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 436.99533300101757
+		},
+		{
+			"index": 23,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 451.80408300459385
+		},
+		{
+			"index": 24,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 512.469374999404
+		},
+		{
+			"index": 25,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 477.12437500059605
+		},
+		{
+			"index": 26,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 448.41879200935364
+		},
+		{
+			"index": 27,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 448.2152500003576
+		},
+		{
+			"index": 28,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 447.83904099464417
+		},
+		{
+			"index": 29,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 448.2802919894457
+		},
+		{
+			"index": 30,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 543.9601249992847
+		},
+		{
+			"index": 31,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 541.3640419989824
+		},
+		{
+			"index": 32,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 540.9354999959469
+		},
+		{
+			"index": 33,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 540.660540997982
+		},
+		{
+			"index": 34,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 539.5252909958363
+		},
+		{
+			"index": 35,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 421.84458300471306
+		},
+		{
+			"index": 36,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 421.13437500596046
+		},
+		{
+			"index": 37,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 511.6162499934435
+		},
+		{
+			"index": 38,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 415.1457089930773
+		},
+		{
+			"index": 39,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 512.0941660106182
+		},
+		{
+			"index": 40,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 532.0009159892797
+		},
+		{
+			"index": 41,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 435.2516670078039
+		},
+		{
+			"index": 42,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 510.630667001009
+		},
+		{
+			"index": 43,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 435.0543750077486
+		},
+		{
+			"index": 44,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 434.6805830001831
+		},
+		{
+			"index": 45,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 427.1623749881983
+		},
+		{
+			"index": 46,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 426.0561670064926
+		},
+		{
+			"index": 47,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 432.26266700029373
+		},
+		{
+			"index": 48,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Each second a secret, un‑aging, un‑kind."
+			],
+			"latencyMs": 464.6759999990463
+		},
+		{
+			"index": 49,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 462.80104100704193
+		},
+		{
+			"index": 50,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 531.0928750038147
+		},
+		{
+			"index": 51,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 468.25929199159145
+		},
+		{
+			"index": 52,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 443.3402909934521
+		},
+		{
+			"index": 53,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 443.4460840076208
+		},
+		{
+			"index": 54,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 443.3275409936905
+		},
+		{
+			"index": 55,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 597.9300840049982
+		},
+		{
+			"index": 56,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑dance, un‑spooling the mind."
+			],
+			"latencyMs": 580.5076659917831
+		},
+		{
+			"index": 57,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 565.1165409982204
+		},
+		{
+			"index": 58,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Each second a secret, un‑aging, un‑kind."
+			],
+			"latencyMs": 562.1232500076294
+		},
+		{
+			"index": 59,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 563.3774580061436
+		},
+		{
+			"index": 60,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 377.25862500071526
+		},
+		{
+			"index": 61,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 487.7852910012007
+		},
+		{
+			"index": 62,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Each second a secret, un‑aging, un‑kind."
+			],
+			"latencyMs": 486.4254579991102
+		},
+		{
+			"index": 63,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 531.2724579870701
+		},
+		{
+			"index": 64,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 265.027999997139
+		},
+		{
+			"index": 65,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 246.55770899355412
+		},
+		{
+			"index": 66,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 413.96662499010563
+		},
+		{
+			"index": 67,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 457.5478749871254
+		},
+		{
+			"index": 68,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 2748.596333011985
+		},
+		{
+			"index": 69,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Each second a secret, un‑aging, un‑kind."
+			],
+			"latencyMs": 533.208083987236
+		},
+		{
+			"index": 70,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 419.5054999887943
+		},
+		{
+			"index": 71,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 439.04604199528694
+		},
+		{
+			"index": 72,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 248.29287500679493
+		},
+		{
+			"index": 73,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑dance, un‑spooling the mind."
+			],
+			"latencyMs": 438.633166000247
+		},
+		{
+			"index": 74,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 2742.9625000059605
+		},
+		{
+			"index": 75,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 554.9064589887857
+		},
+		{
+			"index": 76,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 508.20887500047684
+		},
+		{
+			"index": 77,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 558.5439999997616
+		},
+		{
+			"index": 78,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 2823.2909579873085
+		},
+		{
+			"index": 79,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 308.2912500053644
+		},
+		{
+			"index": 80,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Each second a secret, un‑aging, un‑kind."
+			],
+			"latencyMs": 582.6930829882622
+		},
+		{
+			"index": 81,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 252.56541699171066
+		},
+		{
+			"index": 82,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 517.656667008996
+		},
+		{
+			"index": 83,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 2746.7160829901695
+		},
+		{
+			"index": 84,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Each second a secret, un‑aging, un‑kind."
+			],
+			"latencyMs": 416.09479200839996
+		},
+		{
+			"index": 85,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 743.194832995534
+		},
+		{
+			"index": 86,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑dance, un‑spooling the mind."
+			],
+			"latencyMs": 590.6959590017796
+		},
+		{
+			"index": 87,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 647.5593750029802
+		},
+		{
+			"index": 88,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 3009.726083010435
+		},
+		{
+			"index": 89,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑dance, un‑spooling the mind."
+			],
+			"latencyMs": 3008.924291998148
+		},
+		{
+			"index": 90,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 771.1297920048237
+		},
+		{
+			"index": 91,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 684.2742500007153
+		},
+		{
+			"index": 92,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑dance, un‑spooling the mind."
+			],
+			"latencyMs": 754.0164580047131
+		},
+		{
+			"index": 93,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 644.8650829941034
+		},
+		{
+			"index": 94,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 638.8184159994125
+		},
+		{
+			"index": 95,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 428.4763749986887
+		},
+		{
+			"index": 96,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 263.6768330037594
+		},
+		{
+			"index": 97,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 263.3212080001831
+		},
+		{
+			"index": 98,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 263.0505409985781
+		},
+		{
+			"index": 99,
+			"lines": [
+				"Tick‑tock, the hourglass sighs in reverse,",
+				"Hands chase their shadows, unspooling time’s curse.",
+				"Midnight rewinds to sunrise, a whispered rewind,",
+				"Life’s seconds un‑unravel, dancing backward‑kind."
+			],
+			"latencyMs": 427.34524999558926
 		}
 	]
 }
