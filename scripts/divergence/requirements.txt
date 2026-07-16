@@ -1,0 +1,10 @@
+# LLM Output Divergence Experiment — pinned dependencies
+# Verified working with Python 3.11–3.12 as of late 2025.
+google-genai==1.5.0      # verified-working
+groq==0.13.0             # verified-working
+ollama==0.4.4            # verified-working
+transformers==4.46.3     # verified-working
+tokenizers==0.20.3       # verified-working
+pyyaml==6.0.2            # verified-working
+tqdm==4.67.1             # verified-working
+httpx>=0.28,<0.29        # relaxed; google-genai 1.5.0 requires httpx>=0.28

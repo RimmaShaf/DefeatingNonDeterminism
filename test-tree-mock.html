@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Do 100 Runs Branch?</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+/* CSS_PARTIAL_INJECT */
+  body {
+    background: #080810;
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    padding: 32px 20px 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 28px;
+    max-width: 760px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 300;
+    letter-spacing: 0.18em;
+    color: #fff;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .subtitle {
+    font-size: 0.78rem;
+    color: #888;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: 0.85rem;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    color: #fff;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #222;
+  }
+
+  .section {
+    width: min(96vw, 920px);
+    background: #0d0d18;
+    border: 1px solid #1c1c2a;
+    border-radius: 10px;
+    padding: 26px 28px;
+    margin-bottom: 22px;
+  }
+
+  .caveat-box .caveat-line {
+    font-size: 0.76rem;
+    color: #aaa;
+    line-height: 1.65;
+    margin-bottom: 12px;
+    padding-left: 14px;
+    border-left: 2px solid #ff9b6b;
+  }
+  .caveat-box .caveat-line b { color: #ff9b6b; }
+  .caveat-box .caveat-line.dim { border-left-color: #444; color: #888; }
+  table.seed-matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.74rem;
+    margin: 8px 0 16px;
+  }
+  table.seed-matrix th, table.seed-matrix td {
+    text-align: left;
+    padding: 7px 10px;
+    border-bottom: 1px dashed #1f1f2c;
+  }
+  table.seed-matrix th {
+    color: #777;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.65rem;
+    font-weight: 400;
+    border-bottom: 1px solid #2a2a3a;
+  }
+  table.seed-matrix td.yes { color: #9bffb1; }
+  table.seed-matrix td.no  { color: #ff8a8a; }
+  table.seed-matrix td.note { color: #888; }
+
+  /* ====== Chip selector ====== */
+
+  .chip-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .chip-row-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #666;
+    margin-right: 4px;
+    display: inline-block;
+    min-width: 64px;
+  }
+  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .chip {
+    background: #1a1a2a;
+    border: 1px solid #2a2a3a;
+    color: #ccc;
+    padding: 6px 12px;
+    font-family: inherit;
+    font-size: 0.73rem;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .chip:hover { border-color: #9bd8ff; color: #fff; }
+  .chip.active { background: #1f2f3a; border-color: #9bd8ff; color: #fff; }
+  .chip.unit-toggle.active { background: #3a1f3a; border-color: #ffb3ff; }
+
+  /* ====== Active cell viewer ====== */
+
+  #cell-title {
+    font-size: 0.7rem;
+    color: #888;
+    margin-bottom: 18px;
+    line-height: 1.6;
+  }
+  #cell-title b { color: #fff; }
+  #cell-title .badge {
+    display: inline-block;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-left: 6px;
+  }
+  .badge.trie  { background: #1f2f3a; color: #9bd8ff; }
+  .badge.heat  { background: #1a0d1a; color: #ffb3ff; }
+  .badge.both  { background: #1a120d; color: #ff9b6b; }
+
+  .viz-block { margin-bottom: 26px; }
+  .viz-block:last-child { margin-bottom: 0; }
+  .viz-block .viz-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 10px;
+  }
+
+  #tree-svg-wrap, #heat-wrap {
+    overflow-x: auto;
+    background: #07070f;
+    border-radius: 6px;
+    padding: 10px;
+  }
+
+  .node-rect { fill: #1f2f3a; stroke: #2a3a4a; stroke-width: 1; cursor: pointer; transition: fill 0.12s; }
+  .node-rect:hover { fill: #2a4255; }
+  .node-rect.highlight { fill: #2d5a6e; stroke: #9bd8ff; }
+  .node-text { font-family: 'Courier New', monospace; font-size: 10px; fill: #ccc; pointer-events: none; }
+  .node-count { font-family: 'Courier New', monospace; font-size: 8px; fill: #888; pointer-events: none; }
+  .tree-edge { stroke: #2a2a3a; stroke-width: 1.4; fill: none; }
+  .tree-edge.highlight { stroke: #9bd8ff; stroke-width: 1.8; }
+
+  #tree-tooltip {
+    position: fixed;
+    background: #11111d;
+    border: 1px solid #2a2a3a;
+    border-radius: 5px;
+    padding: 6px 10px;
+    font-size: 0.7rem;
+    color: #fff;
+    pointer-events: none;
+    display: none;
+    z-index: 10;
+    max-width: 280px;
+    word-break: break-all;
+  }
+  #tree-tooltip b { color: #9bd8ff; }
+
+  /* heat strip */
+  .heat-row { display: flex; gap: 1px; margin-bottom: 1px; align-items: center; }
+  .heat-row-idx {
+    width: 28px;
+    font-size: 0.58rem;
+    color: #555;
+    flex-shrink: 0;
+    text-align: right;
+    padding-right: 4px;
+  }
+  .heat-cell {
+    width: 56px;
+    height: 22px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.58rem;
+    color: #ddd;
+    border-radius: 2px;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 0 2px;
+  }
+  .heat-cell.empty { background: #11111d; color: #333; }
+
+  #legend-sticky {
+    position: sticky;
+    bottom: 8px;
+    margin: 18px auto 0;
+    width: min(96vw, 920px);
+    background: #0d0d18;
+    border: 1px solid #1c1c2a;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.65rem;
+    color: #888;
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    align-items: center;
+    letter-spacing: 0.02em;
+  }
+  #legend-sticky b { color: #fff; }
+  .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
+
+  .no-data {
+    text-align: center;
+    color: #444;
+    font-size: 0.72rem;
+    padding: 40px 8px;
+    letter-spacing: 0.06em;
+    font-style: italic;
+  }
+
+  .collapse-tag {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    fill: #777;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>How Do 100 Runs Branch?</h1>
+  <p class="subtitle">Same prompt, 100 runs — token-level prefix tree and aligned divergence.</p>
+</header>
+
+<section class="section caveat-box">
+  <h2>Read this before exploring</h2>
+  <div class="caveat-line">
+    <b>Unit asymmetry.</b> Gemini cells render against <b>byte</b> or <b>codepoint</b> trees (toggle below);
+    Ollama and Groq cells render against each model's own <b>token</b> tree. Tree shapes are not
+    comparable across providers.
+  </div>
+  <table class="seed-matrix">
+    <tr><th>Provider</th><th>Seed accepted</th><th>Notes</th></tr>
+    <tr><td>Ollama</td><td class="yes">yes</td><td class="note"><code>options.seed = run_idx</code>; T=0 trees are expected to collapse to a single trunk.</td></tr>
+    <tr><td>Groq</td><td class="yes">yes</td><td class="note"><code>seed = run_idx</code>; vendor does not guarantee determinism even with a fixed seed.</td></tr>
+    <tr><td>Gemini</td><td class="no">no</td><td class="note">seed left unset (documented); <code>seed_scheme="unset"</code> baked into the config hash.</td></tr>
+  </table>
+  <div class="caveat-line dim">
+    n = 4 prompts is exploratory, not representative. Each tree below is one illustrative sample, not a
+    benchmark result.
+  </div>
+</section>
+
+<section class="section">
+  <h2>Select a cell</h2>
+  <div class="chip-rows">
+    <div class="chip-row"><span class="chip-row-label">Model</span><span id="chips-model"></span></div>
+    <div class="chip-row"><span class="chip-row-label">Prompt</span><span id="chips-prompt"></span></div>
+    <div class="chip-row"><span class="chip-row-label">Temp</span><span id="chips-temp"></span></div>
+    <div class="chip-row" id="row-unit" style="display:none"><span class="chip-row-label">Unit</span><span id="chips-unit"></span></div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Active cell</h2>
+  <div id="cell-title">Select a model, prompt and temperature above.</div>
+  <div id="viz-root"></div>
+</section>
+
+<div id="legend-sticky">
+  <span><span class="swatch" style="background:#1f2f3a"></span><b>Trie</b> — node height ∝ count; hover for token + count; click to highlight downstream path.</span>
+  <span><span class="swatch" style="background:linear-gradient(90deg,#11111d,#9bd8ff)"></span><b>Heat-strip</b> — darker cell = more runs share that token at that column.</span>
+</div>
+<div id="tree-tooltip"></div>
+
+<script>
+
+window.DIVERGENCE_DATA = {
+  "generated_at": "2026-06-23T00:00:00Z",
+  "harness_version": "0.1.0",
+  "cells": [
+    {
+      "model": "gemma3:27b", "provider": "ollama", "prompt_id": "math_det",
+      "prompt_text": "17*23", "category": "deterministic-arithmetic",
+      "temperature": 0.0, "unit": "token", "n_ok": 100, "n_excluded": 0,
+      "status_counts": {"ok":100,"empty":0,"error":0,"filtered":0,"truncated":0},
+      "mean_len": 12.4,
+      "cdf_pairwise": [{"k":0,"p":0.0},{"k":1,"p":0.0},{"k":12,"p":1.0}],
+      "lcp_depths": [12,12,12],
+      "tree": {"token":"","count":100,"children":[{"token":"391","count":100,"children":[{"token":".","count":100,"children":[]}]}]},
+      "cdf_byte": null, "cdf_codepoint": null, "tree_byte": null, "tree_codepoint": null
+    },
+    {
+      "model": "gemma3:27b", "provider": "ollama", "prompt_id": "creative",
+      "prompt_text": "write a poem", "category": "open-ended-generation",
+      "temperature": 0.7, "unit": "token", "n_ok": 40, "n_excluded": 0,
+      "status_counts": {"ok":40,"empty":0,"error":0,"filtered":0,"truncated":0},
+      "mean_len": 80.1,
+      "cdf_pairwise": [{"k":0,"p":0.05},{"k":1,"p":0.3},{"k":3,"p":0.6},{"k":10,"p":0.9},{"k":40,"p":1.0}],
+      "lcp_depths": [0,1,1,2],
+      "tree": {"token":"","count":40,"children":[
+        {"token":"Roses","count":20,"children":[{"token":" are","count":20,"children":[{"token":" red","count":12,"children":[]},{"token":" blue","count":8,"children":[]}]}]},
+        {"token":"The","count":20,"children":[{"token":" sun","count":10,"children":[]},{"token":" moon","count":10,"children":[]}]}
+      ]},
+      "cdf_byte": null, "cdf_codepoint": null, "tree_byte": null, "tree_codepoint": null
+    },
+    {
+      "model": "gemini-2.5-flash", "provider": "gemini", "prompt_id": "factual",
+      "prompt_text": "capital of france", "category": "factual-recall",
+      "temperature": 0.0, "unit": "codepoint", "n_ok": 30, "n_excluded": 0,
+      "status_counts": {"ok":30,"empty":0,"error":0,"filtered":0,"truncated":0},
+      "mean_len": 20.0,
+      "cdf_pairwise": [{"k":0,"p":0.1},{"k":5,"p":0.5},{"k":20,"p":1.0}],
+      "lcp_depths": [5,5,6],
+      "tree": {"token":"","count":30,"children":[{"token":"Paris","count":30,"children":[]}]},
+      "cdf_byte": [{"k":0,"p":0.1},{"k":6,"p":0.5},{"k":22,"p":1.0}],
+      "cdf_codepoint": [{"k":0,"p":0.1},{"k":5,"p":0.5},{"k":20,"p":1.0}],
+      "tree_byte": {"token":"","count":30,"children":[{"token":"Paris","count":30,"children":[]}]},
+      "tree_codepoint": {"token":"","count":30,"children":[{"token":"Paris","count":30,"children":[]}]}
+    }
+  ]
+};
+
+const DATA = typeof window.DIVERGENCE_DATA !== 'undefined' ? window.DIVERGENCE_DATA : null;
+
+const NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs) {
+  const el = document.createElementNS(NS, tag);
+  for (const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+
+let state = { model: null, prompt: null, temp: null, unit: 'codepoint' };
+
+function uniq(arr) { return Array.from(new Set(arr)); }
+
+function getCells() {
+  return (DATA && DATA.cells) ? DATA.cells : [];
+}
+
+function findCell() {
+  return getCells().find(c =>
+    c.model === state.model && c.prompt_id === state.prompt && c.temperature === state.temp
+  );
+}
+
+function buildChips() {
+  const cells = getCells();
+  const modelEl = document.getElementById('chips-model');
+  const promptEl = document.getElementById('chips-prompt');
+  const tempEl = document.getElementById('chips-temp');
+
+  if (!cells.length) {
+    modelEl.innerHTML = '<span style="color:#444;font-size:0.72rem">no data yet</span>';
+    return;
+  }
+
+  const models = uniq(cells.map(c => c.model));
+  const prompts = uniq(cells.map(c => c.prompt_id));
+  const temps = uniq(cells.map(c => c.temperature)).sort((a, b) => a - b);
+
+  state.model = state.model || models[0];
+  state.prompt = state.prompt || prompts[0];
+  state.temp = (state.temp !== null && state.temp !== undefined) ? state.temp : temps[0];
+
+  function renderRow(el, values, key, fmt) {
+    el.innerHTML = '';
+    values.forEach(v => {
+      const chip = document.createElement('button');
+      chip.className = 'chip' + (state[key] === v ? ' active' : '');
+      chip.textContent = fmt ? fmt(v) : v;
+      chip.addEventListener('click', () => {
+        state[key] = v;
+        renderAll();
+      });
+      el.appendChild(chip);
+    });
+  }
+
+  renderRow(modelEl, models, 'model');
+  renderRow(promptEl, prompts, 'prompt');
+  renderRow(tempEl, temps, 'temp', t => 'T=' + t);
+}
+
+function buildUnitToggle(cell) {
+  const row = document.getElementById('row-unit');
+  const el = document.getElementById('chips-unit');
+  el.innerHTML = '';
+  if (!cell || cell.provider !== 'gemini') {
+    row.style.display = 'none';
+    return;
+  }
+  row.style.display = 'flex';
+  ['codepoint', 'byte'].forEach(u => {
+    const chip = document.createElement('button');
+    chip.className = 'chip unit-toggle' + (state.unit === u ? ' active' : '');
+    chip.textContent = u;
+    chip.addEventListener('click', () => { state.unit = u; renderViz(cell); buildUnitToggle(cell); });
+    el.appendChild(chip);
+  });
+}
+
+function activeTree(cell) {
+  if (cell.provider === 'gemini') {
+    return state.unit === 'byte' ? cell.tree_byte : cell.tree_codepoint;
+  }
+  return cell.tree;
+}
+
+function vizModeFor(temp) {
+  if (temp <= 0.2) return 'trie';
+  if (temp >= 0.7) return 'heat';
+  return 'both';
+}
+
+// ---------------------------------------------------------------------
+// Reingold-Tilford-style tidy tree layout (simplified two-pass version):
+// pass 1 (post-order): compute leaf y via in-order counter, internal y = mean(children y)
+// pass 2 (pre-order): x = depth * xstep
+// ---------------------------------------------------------------------
+function layoutTree(root) {
+  const YSTEP = 26;
+  const XSTEP = 90;
+  let leafCounter = 0;
+  const nodes = [];
+
+  function assign(node, depth) {
+    const n = { token: node.token, count: node.count, depth, children: [], collapsed: node._collapsed || null };
+    nodes.push(n);
+    const kids = node.children || [];
+    if (!kids.length) {
+      n.y = leafCounter * YSTEP;
+      leafCounter++;
+    } else {
+      kids.forEach(k => n.children.push(assign(k, depth + 1)));
+      n.y = n.children.reduce((s, c) => s + c.y, 0) / n.children.length;
+    }
+    n.x = depth * XSTEP;
+    return n;
+  }
+
+  const laidOut = assign(root, 0);
+  return { root: laidOut, nodes, height: Math.max(leafCounter * YSTEP, YSTEP), width: 0 };
+}
+
+// Collapse long singleton chains (count constant, single child) into "...+N"
+function collapseSingletons(node) {
+  const clone = { token: node.token, count: node.count, children: [] };
+  let cur = node;
+  let chain = [];
+  while (cur.children && cur.children.length === 1 && cur.children[0].count === cur.count) {
+    chain.push(cur.children[0]);
+    cur = cur.children[0];
+  }
+  if (chain.length > 1) {
+    clone.children = [{
+      token: '… +' + (chain.length - 1) + ' more',
+      count: cur.count,
+      _collapsed: chain.length - 1,
+      children: (cur.children || []).map(collapseSingletons),
+    }];
+  } else {
+    clone.children = (node.children || []).map(collapseSingletons);
+  }
+  return clone;
+}
+
+function renderTrie(container, tree, maxCount) {
+  if (!tree) {
+    const nd = document.createElement('div');
+    nd.className = 'no-data';
+    nd.textContent = 'no tree data for this cell';
+    container.appendChild(nd);
+    return;
+  }
+  const collapsed = collapseSingletons(tree);
+  const { root, height } = layoutTree(collapsed);
+  const PAD = 30;
+  const maxDepth = (function md(n) { return n.children.length ? 1 + Math.max(...n.children.map(md)) : 0; })(root);
+  const width = Math.max(360, maxDepth * 90 + 160);
+
+  const svg = svgEl('svg', { width: width, height: height + PAD * 2, viewBox: `0 0 ${width} ${height + PAD * 2}` });
+
+  const tooltip = document.getElementById('tree-tooltip');
+
+  // Draw edges first (so node rects sit visually above them), keeping a
+  // reference to each edge's SVG element on the *child* node — clicking a
+  // node highlights its own incoming edge plus every edge/rect downstream.
+  function drawEdges(n) {
+    n.children.forEach(c => {
+      const path = svgEl('path', {
+        class: 'tree-edge',
+        d: `M ${n.x + 60},${n.y + PAD} C ${n.x + 75},${n.y + PAD} ${c.x + 15},${c.y + PAD} ${c.x + 30},${c.y + PAD}`,
+      });
+      c._edgeEl = path;
+      svg.appendChild(path);
+      drawEdges(c);
+    });
+  }
+  drawEdges(root);
+
+  allNodesOf(root).forEach(n => {
+    const h = Math.max(4, Math.min(22, (n.count / maxCount) * 22));
+    const w = 56;
+    const rect = svgEl('rect', {
+      class: 'node-rect',
+      x: n.x, y: n.y + PAD - h / 2,
+      width: w, height: h, rx: 3,
+    });
+    n._rectEl = rect;
+    svg.appendChild(rect);
+
+    const label = n.token === '' ? '∅' : (n.token.length > 8 ? n.token.slice(0, 7) + '…' : n.token);
+    const text = svgEl('text', { class: 'node-text', x: n.x + 4, y: n.y + PAD + 3 });
+    text.textContent = label;
+    svg.appendChild(text);
+
+    const count = svgEl('text', { class: 'node-count', x: n.x + 4, y: n.y + PAD + h / 2 + 9 });
+    count.textContent = 'n=' + n.count;
+    svg.appendChild(count);
+
+    rect.addEventListener('mousemove', (ev) => {
+      tooltip.style.display = 'block';
+      tooltip.style.left = (ev.clientX + 14) + 'px';
+      tooltip.style.top = (ev.clientY + 10) + 'px';
+      tooltip.innerHTML = `<b>${n.token === '' ? '(root)' : n.token}</b> · count=${n.count}`;
+    });
+    rect.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+
+    rect.addEventListener('click', () => {
+      svg.querySelectorAll('.node-rect, .tree-edge').forEach(e => e.classList.remove('highlight'));
+      highlightDownstream(n);
+    });
+  });
+
+  container.innerHTML = '';
+  container.appendChild(svg);
+
+  function allNodesOf(start) {
+    const out = [];
+    (function collect(node) { out.push(node); node.children.forEach(collect); })(start);
+    return out;
+  }
+
+  function highlightDownstream(n) {
+    if (n._edgeEl) n._edgeEl.classList.add('highlight');
+    if (n._rectEl) n._rectEl.classList.add('highlight');
+    n.children.forEach(highlightDownstream);
+  }
+}
+
+function renderHeat(container, cell) {
+  const tree = activeTree(cell);
+  if (!tree) {
+    const nd = document.createElement('div');
+    nd.className = 'no-data';
+    nd.textContent = 'no sequence data for this cell';
+    container.appendChild(nd);
+    return;
+  }
+
+  // Reconstruct representative token sequences by walking the trie depth-first,
+  // weighted by count, to approximate n_ok rows worth of columns (best-effort
+  // visualization — exact per-run sequences are not retained in the tree JSON).
+  const maxCols = 24;
+  const colFreq = []; // colFreq[col] = Map(token -> count)
+
+  function walk(node, depth, weight) {
+    if (depth >= maxCols) return;
+    if (node.token !== undefined && depth > 0) {
+      colFreq[depth - 1] = colFreq[depth - 1] || new Map();
+      colFreq[depth - 1].set(node.token, (colFreq[depth - 1].get(node.token) || 0) + weight);
+    }
+    (node.children || []).forEach(c => walk(c, depth + 1, c.count));
+  }
+  walk(tree, 0, tree.count);
+
+  const rows = Math.min(cell.n_ok || 0, 16);
+  const wrap = document.createElement('div');
+
+  for (let r = 0; r < Math.max(rows, 1); r++) {
+    const row = document.createElement('div');
+    row.className = 'heat-row';
+    const idx = document.createElement('div');
+    idx.className = 'heat-row-idx';
+    idx.textContent = '#' + (r + 1);
+    row.appendChild(idx);
+
+    for (let c = 0; c < colFreq.length; c++) {
+      const freqMap = colFreq[c];
+      const cellDiv = document.createElement('div');
+      cellDiv.className = 'heat-cell';
+      if (!freqMap || !freqMap.size) {
+        cellDiv.classList.add('empty');
+        row.appendChild(cellDiv);
+        continue;
+      }
+      const sorted = Array.from(freqMap.entries()).sort((a, b) => b[1] - a[1]);
+      const pick = sorted[r % sorted.length];
+      const total = sorted.reduce((s, e) => s + e[1], 0);
+      const frac = pick[1] / total;
+      const lightness = 14 + frac * 45; // darker (higher freq) -> closer to base
+      cellDiv.style.background = `hsl(200, 70%, ${(60 - frac * 45).toFixed(0)}%)`;
+      cellDiv.style.color = frac > 0.5 ? '#07070f' : '#ddd';
+      cellDiv.textContent = pick[0] === '' ? '∅' : pick[0];
+      cellDiv.title = `"${pick[0]}" — ${(frac * 100).toFixed(0)}% of runs at column ${c}`;
+      row.appendChild(cellDiv);
+    }
+    wrap.appendChild(row);
+  }
+
+  const note = document.createElement('div');
+  note.style.cssText = 'font-size:0.62rem;color:#555;margin-top:8px;line-height:1.6;';
+  note.textContent = 'Columns are token/unit positions from the prefix trie; rows are a sample of distinct branches, repeated to approximate n_ok runs. Darker cell = token shared by a larger fraction of runs at that column.';
+  wrap.appendChild(note);
+
+  container.innerHTML = '';
+  container.appendChild(wrap);
+}
+
+function maxCountIn(tree) {
+  let m = tree.count || 1;
+  (tree.children || []).forEach(c => { m = Math.max(m, maxCountIn(c)); });
+  return m;
+}
+
+function renderViz(cell) {
+  const root = document.getElementById('viz-root');
+  root.innerHTML = '';
+
+  if (!cell) {
+    const nd = document.createElement('div');
+    nd.className = 'no-data';
+    nd.textContent = 'no data yet';
+    root.appendChild(nd);
+    return;
+  }
+
+  const mode = vizModeFor(cell.temperature);
+  const badgeClass = mode === 'trie' ? 'trie' : (mode === 'heat' ? 'heat' : 'both');
+  const badgeText = mode === 'trie' ? 'PREFIX TRIE' : (mode === 'heat' ? 'ALIGNED HEAT-STRIP' : 'TRIE + HEAT-STRIP');
+  document.getElementById('cell-title').innerHTML =
+    `<b>${cell.model}</b> · ${cell.prompt_id} · T=${cell.temperature} · n_ok=${cell.n_ok}` +
+    `<span class="badge ${badgeClass}">${badgeText}</span>` +
+    (cell.n_ok < 50 ? '<span class="badge" style="background:#1a120d;color:#ff9b6b">LOW SAMPLE</span>' : '');
+
+  if (mode === 'trie' || mode === 'both') {
+    const block = document.createElement('div');
+    block.className = 'viz-block';
+    const label = document.createElement('div');
+    label.className = 'viz-label';
+    label.textContent = 'Prefix trie (Reingold–Tilford layout)';
+    block.appendChild(label);
+    const wrap = document.createElement('div');
+    wrap.id = 'tree-svg-wrap';
+    block.appendChild(wrap);
+    root.appendChild(block);
+
+    const tree = activeTree(cell);
+    if (tree) {
+      renderTrie(wrap, tree, maxCountIn(tree));
+    } else {
+      wrap.innerHTML = '<div class="no-data">no tree data for this cell</div>';
+    }
+  }
+
+  if (mode === 'heat' || mode === 'both') {
+    const block = document.createElement('div');
+    block.className = 'viz-block';
+    const label = document.createElement('div');
+    label.className = 'viz-label';
+    label.textContent = 'Aligned diff + per-column token-frequency heat-strip';
+    block.appendChild(label);
+    const wrap = document.createElement('div');
+    wrap.id = 'heat-wrap';
+    block.appendChild(wrap);
+    root.appendChild(block);
+    renderHeat(wrap, cell);
+  }
+}
+
+function renderAll() {
+  buildChips();
+  const cell = findCell();
+  buildUnitToggle(cell);
+  renderViz(cell);
+}
+
+if (!DATA || !getCells().length) {
+  document.getElementById('cell-title').textContent =
+    'Open after running python scripts/divergence/analyze.py --emit-html ...';
+  document.getElementById('chips-model').innerHTML = '<span style="color:#444;font-size:0.72rem">no data yet</span>';
+} else {
+  renderAll();
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+# Stretch divergence sweep — gated on baseline shipping cleanly + ≥$20 budget unspent.
+# n=20 prompts (5 per category) for higher statistical power.
+
+prompts:
+  - {id: math_det_1, category: deterministic-arithmetic, text: "What is 17 * 23? Answer with just the number."}
+  - {id: math_det_2, category: deterministic-arithmetic, text: "What is 144 / 12? Answer with just the number."}
+  - {id: math_det_3, category: deterministic-arithmetic, text: "What is 7 ^ 3? Answer with just the number."}
+  - {id: math_det_4, category: deterministic-arithmetic, text: "What is 256 + 119? Answer with just the number."}
+  - {id: math_det_5, category: deterministic-arithmetic, text: "What is 1024 - 768? Answer with just the number."}
+
+  - {id: creative_1, category: open-ended-generation, text: "Write a two-sentence story about a lighthouse."}
+  - {id: creative_2, category: open-ended-generation, text: "Describe a city at dusk in three sentences."}
+  - {id: creative_3, category: open-ended-generation, text: "Invent a short proverb about patience."}
+  - {id: creative_4, category: open-ended-generation, text: "Write a haiku about a forgotten library."}
+  - {id: creative_5, category: open-ended-generation, text: "In two sentences, tell a tale about a clock that runs backward."}
+
+  - {id: code_comp_1, category: code-completion, text: "Complete this Python function:\ndef is_prime(n):"}
+  - {id: code_comp_2, category: code-completion, text: "Complete this Python function:\ndef fibonacci(n):"}
+  - {id: code_comp_3, category: code-completion, text: "Complete this Python function:\ndef reverse_string(s):"}
+  - {id: code_comp_4, category: code-completion, text: "Complete this Python function:\ndef binary_search(arr, target):"}
+  - {id: code_comp_5, category: code-completion, text: "Complete this Python function:\ndef merge_sorted(a, b):"}
+
+  - {id: factual_1, category: factual-recall, text: "In one sentence, who painted the Sistine Chapel ceiling and when?"}
+  - {id: factual_2, category: factual-recall, text: "In one sentence, who wrote the play Hamlet and approximately when?"}
+  - {id: factual_3, category: factual-recall, text: "In one sentence, what year did the Berlin Wall fall and in what city?"}
+  - {id: factual_4, category: factual-recall, text: "In one sentence, what is the chemical formula of water and what bonds it?"}
+  - {id: factual_5, category: factual-recall, text: "In one sentence, who discovered penicillin and in what year?"}
+
+models:
+  - {provider: ollama, name: "gemma4:latest"}
+  - {provider: ollama, name: "gemma3:27b"}
+  # - {provider: gemini, name: "gemini-2.5-flash"}
+  # - {provider: groq,   name: "llama-3.3-70b-versatile"}
+
+temperatures: [0.0, 0.7]
+n_runs: 100
+max_tokens: 200
+top_p: 1.0

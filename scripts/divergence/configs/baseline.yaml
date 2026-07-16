@@ -1,0 +1,23 @@
+# Baseline divergence sweep — uses locally-installed Ollama models only.
+# The plan nominates llama3.1:8b + qwen2.5:7b; this machine has gemma+llama3.3
+# pulled, so we substitute. See README for the substitution rationale.
+# Gemini / Groq cells are commented out — uncomment after exporting keys.
+
+prompts:
+  - {id: math_det,  category: deterministic-arithmetic, text: "What is 17 * 23? Answer with just the number."}
+  - {id: creative,  category: open-ended-generation,    text: "Write a two-sentence story about a lighthouse."}
+  - {id: code_comp, category: code-completion,          text: "Complete this Python function:\ndef is_prime(n):"}
+  - {id: factual,   category: factual-recall,           text: "In one sentence, who painted the Sistine Chapel ceiling and when?"}
+
+models:
+  - {provider: ollama, name: "gemma4:latest"}
+  - {provider: ollama, name: "gemma3:27b"}
+  - {provider: ollama, name: "llama3.3:70b-instruct-q2_K"}
+  - {provider: ollama, name: "llama3.3:70b"}
+  # - {provider: gemini, name: "gemini-2.5-flash"}
+  # - {provider: groq,   name: "llama-3.3-70b-versatile"}
+
+temperatures: [0.0]
+n_runs: 500
+max_tokens: 20000
+top_p: 1.0

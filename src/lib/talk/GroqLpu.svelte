@@ -41,72 +41,74 @@
 	.gl__panes {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
-		gap: 20px;
+		gap: 24px;
 		text-align: left;
 	}
 
 	.gl__pane {
-		background: #11151d;
-		border: 1px solid #232b3b;
-		border-radius: 12px;
-		padding: 20px 24px;
+		background: #f6f9fe;
+		border: 1px solid #d7e3f4;
+		border-radius: 14px;
+		padding: 26px 30px;
+		box-shadow: 0 10px 28px rgba(23, 58, 110, 0.06);
 	}
 
 	.gl__pane--lpu {
-		border-color: #2f4a3a;
+		border: 2px solid #2a7de1;
 	}
 
 	.gl__name {
-		margin: 0 0 2px;
-		font-size: clamp(18px, 2vw, 26px);
-		color: #e8edf7;
+		margin: 0 0 4px;
+		font-size: clamp(24px, 2.6vw, 34px);
+		color: #14356e;
 	}
 
 	.gl__tagline {
-		margin: 0 0 14px;
+		margin: 0 0 16px;
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 12px;
+		font-size: clamp(13px, 1.3vw, 16px);
 		letter-spacing: 0.12em;
 		text-transform: uppercase;
-		color: #5b6678;
+		color: #d6453d;
 	}
 
 	.gl__pane--lpu .gl__tagline {
-		color: #6ee7a0;
+		color: #1d9e57;
 	}
 
 	.gl__list {
 		margin: 0;
-		padding-left: 18px;
-		font-size: clamp(13px, 1.4vw, 17px);
+		padding-left: 22px;
+		font-size: clamp(17px, 1.8vw, 23px);
 		line-height: 1.6;
-		color: #aab4c8;
+		color: #3c4f78;
 	}
 
 	.gl__list li {
-		margin-bottom: 7px;
+		margin-bottom: 9px;
 	}
 
 	.gl__list em {
-		color: #ffb454;
+		color: #2a7de1;
 		font-style: normal;
+		font-weight: 600;
 	}
 
 	.gl__source {
-		margin: 20px auto 0;
+		margin: 26px auto 0;
 		max-width: 66ch;
-		font-size: clamp(13px, 1.5vw, 18px);
+		font-size: clamp(17px, 1.9vw, 24px);
 		line-height: 1.55;
-		color: #aab4c8;
+		color: #3c4f78;
 	}
 
 	.gl__source strong {
-		color: #6ee7a0;
+		color: #1d9e57;
 	}
 
 	.gl__source em {
 		font-style: italic;
-		color: #c9d3e4;
+		color: #14356e;
 	}
 
 	@media (max-width: 760px) {

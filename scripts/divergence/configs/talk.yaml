@@ -1,0 +1,14 @@
+# Talk exhibit config — "One prompt. 100 runs. Watch them branch."
+# 1 fast model x 4 prompts x temp 0 x 100 runs. The math cell stays boring
+# (all runs agree) — a great on-stage contrast to the creative cell branching.
+prompts:
+  - {id: math_det,  category: deterministic-arithmetic, text: "What is 17 * 23? Answer with just the number."}
+  - {id: creative,  category: open-ended-generation,    text: "Write a two-sentence story about a lighthouse."}
+  - {id: code_comp, category: code-completion,          text: "Complete this Python function:\ndef is_prime(n):"}
+  - {id: factual,   category: factual-recall,           text: "In one sentence, who painted the Sistine Chapel ceiling and when?"}
+models:
+  - {provider: ollama, name: "gemma4:latest"}
+temperatures: [0.0]
+n_runs: 100
+max_tokens: 256
+top_p: 1.0

@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Floating Point Non-Associativity: The Wandering Sum</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #07070d;
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    overflow: hidden;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    color: #fff;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-size: 0.72rem;
+    color: #666;
+    letter-spacing: 0.06em;
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .orb-container {
+    position: relative;
+    width: 280px;
+    height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .orb-glow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.4;
+    transition: background-color 0.1s ease;
+  }
+
+  .orb {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.1s ease;
+    box-shadow: 0 0 60px rgba(0,0,0,0.8);
+  }
+
+  .orb-inner {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+  }
+
+  .sum-label {
+    font-size: 0.58rem;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 6px;
+  }
+
+  .sum-value {
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.9);
+    text-align: center;
+    word-break: break-all;
+    line-height: 1.6;
+    letter-spacing: 0.04em;
+  }
+
+  .digit-stable { color: rgba(255,255,255,0.95); }
+  .digit-unstable { color: #ffdd44; font-weight: bold; }
+
+  .pulse-ring {
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    animation: none;
+    opacity: 0;
+  }
+
+  @keyframes pulse-out {
+    0%   { transform: scale(1);   opacity: 0.7; border-width: 2px; }
+    100% { transform: scale(1.6); opacity: 0;   border-width: 0px; }
+  }
+
+  .pulse-ring.fire {
+    animation: pulse-out 0.5s ease-out forwards;
+  }
+
+  .stats-row {
+    margin-top: 36px;
+    display: flex;
+    gap: 40px;
+    font-size: 0.7rem;
+    color: #666;
+    text-align: center;
+  }
+
+  .stat-label { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.1em; color: #444; margin-bottom: 3px; }
+  .stat-val { color: #ccc; }
+  .stat-delta { color: #f0c060; }
+
+  #histogram {
+    margin-top: 28px;
+    width: min(90vw, 400px);
+    height: 50px;
+    position: relative;
+  }
+
+  #histogram canvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 3px;
+    opacity: 0.8;
+  }
+
+  .hist-label {
+    font-size: 0.58rem;
+    color: #444;
+    text-align: center;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  #controls {
+    margin-top: 28px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+
+  button {
+    padding: 10px 28px;
+    border: 1px solid #333;
+    background: #111120;
+    color: #ccc;
+    font-family: inherit;
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+  button:hover { border-color: #666; color: #fff; }
+  button.active { border-color: #f0c060; color: #f0c060; }
+
+  .speed-label { font-size: 0.68rem; color: #555; }
+  input[type=range] { accent-color: #f0c060; width: 90px; }
+</style>
+</head>
+<body>
+
+<h1>The Wandering Sum</h1>
+<p class="subtitle">Same 50 numbers · Different order each tick · Never quite the same answer</p>
+
+<div class="orb-container">
+  <div class="orb-glow" id="orb-glow"></div>
+  <div class="orb" id="orb">
+    <div class="orb-inner">
+      <div class="sum-label">current sum</div>
+      <div class="sum-value" id="sum-display">···</div>
+    </div>
+  </div>
+  <div class="pulse-ring" id="pulse-ring"></div>
+</div>
+
+<div class="stats-row">
+  <div>
+    <div class="stat-label">Iterations</div>
+    <div class="stat-val" id="stat-iters">0</div>
+  </div>
+  <div>
+    <div class="stat-label">Spread Δ</div>
+    <div class="stat-val stat-delta" id="stat-delta">—</div>
+  </div>
+  <div>
+    <div class="stat-label">Unique values</div>
+    <div class="stat-val" id="stat-unique">0</div>
+  </div>
+</div>
+
+<div id="histogram">
+  <canvas id="hist-canvas"></canvas>
+</div>
+<div class="hist-label">Distribution of sums seen</div>
+
+<div id="controls">
+  <button id="btn-go">▶ GO</button>
+  <button id="btn-reset">↺ RESET</button>
+  <span class="speed-label">Speed</span>
+  <input type="range" id="speed" min="1" max="30" value="8">
+  <span class="speed-label" id="speed-val">8 fps</span>
+</div>
+
+<script>
+const NUMS = [
+  1/3, 2/3, 1/6, 5/6, 1/7, 2/7, 3/7, 4/7, 5/7, 6/7,
+  1/9, 2/9, 4/9, 5/9, 7/9, 8/9,
+  1/11, 2/11, 3/11, 4/11, 5/11,
+  1/13, 2/13, 3/13, 4/13,
+  Math.PI / 10, Math.PI / 20, Math.PI / 30,
+  Math.E / 10, Math.E / 20,
+  Math.SQRT2 / 10, Math.LN2 / 5,
+  0.1, 0.2, 0.3, 0.4, 0.6, 0.7, 0.8,
+  1/12, 5/12, 7/12, 11/12,
+  1/14, 3/14, 5/14,
+  1/15, 2/15, 4/15, 7/15
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = (Math.random() * (i + 1)) | 0;
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+function naiveSum(arr) {
+  let s = 0;
+  for (let i = 0; i < arr.length; i++) s += arr[i];
+  return s;
+}
+
+// ── State
+let running = false;
+let iterations = 0;
+let globalMin = Infinity;
+let globalMax = -Infinity;
+let prevSum = null;
+let animId = null;
+let lastFrameTime = 0;
+let targetFps = 8;
+
+// Histogram: 80 buckets
+const HIST_BUCKETS = 80;
+const histCounts = new Array(HIST_BUCKETS).fill(0);
+const seenValues = new Set();
+
+// Warmup
+function warmup() {
+  for (let i = 0; i < 500; i++) {
+    const s = naiveSum(shuffle(NUMS));
+    if (s < globalMin) globalMin = s;
+    if (s > globalMax) globalMax = s;
+  }
+}
+warmup();
+
+function sumToBucket(s) {
+  const range = globalMax - globalMin;
+  if (range === 0) return 0;
+  const t = (s - globalMin) / range;
+  return Math.min(HIST_BUCKETS - 1, Math.floor(t * HIST_BUCKETS));
+}
+
+function sumToHue(s) {
+  const range = globalMax - globalMin;
+  if (range === 0) return 200;
+  const t = (s - globalMin) / range;
+  return t * 300;
+}
+
+// Digit comparison: find first differing digit vs previous
+function buildDigitSpans(current, previous) {
+  const cs = current.toPrecision(18);
+  const ps = previous ? previous.toPrecision(18) : null;
+
+  if (!ps) return `<span class="digit-stable">${cs}</span>`;
+
+  let firstDiff = -1;
+  for (let i = 0; i < cs.length; i++) {
+    if (cs[i] !== ps[i]) { firstDiff = i; break; }
+  }
+
+  if (firstDiff === -1) return `<span class="digit-stable">${cs}</span>`;
+
+  const stable = cs.slice(0, firstDiff);
+  const unstable = cs.slice(firstDiff);
+  return `<span class="digit-stable">${stable}</span><span class="digit-unstable">${unstable}</span>`;
+}
+
+// Draw histogram
+const histCanvas = document.getElementById('hist-canvas');
+histCanvas.width = 400;
+histCanvas.height = 50;
+const ctx = histCanvas.getContext('2d');
+
+function drawHistogram() {
+  ctx.clearRect(0, 0, 400, 50);
+  const maxCount = Math.max(1, ...histCounts);
+  const bw = 400 / HIST_BUCKETS;
+
+  for (let i = 0; i < HIST_BUCKETS; i++) {
+    const h = (histCounts[i] / maxCount) * 46;
+    const hue = (i / HIST_BUCKETS) * 300;
+    ctx.fillStyle = `hsl(${hue}, 80%, 50%)`;
+    ctx.fillRect(i * bw, 50 - h, bw - 0.5, h);
+  }
+}
+
+// Trigger pulse animation
+const pulseRing = document.getElementById('pulse-ring');
+function triggerPulse(hue) {
+  pulseRing.style.borderColor = `hsl(${hue}, 80%, 60%)`;
+  pulseRing.classList.remove('fire');
+  void pulseRing.offsetWidth; // reflow
+  pulseRing.classList.add('fire');
+}
+
+// ── Main tick
+function tick(ts) {
+  if (!running) return;
+
+  const interval = 1000 / targetFps;
+  if (ts - lastFrameTime < interval) {
+    animId = requestAnimationFrame(tick);
+    return;
+  }
+  lastFrameTime = ts;
+
+  const arr = shuffle(NUMS);
+  const s = naiveSum(arr);
+  iterations++;
+
+  if (s < globalMin) globalMin = s;
+  if (s > globalMax) globalMax = s;
+
+  const hue = sumToHue(s);
+  const color = `hsl(${hue.toFixed(1)}, 85%, 52%)`;
+  const glowColor = `hsl(${hue.toFixed(1)}, 90%, 35%)`;
+
+  document.getElementById('orb').style.backgroundColor = color;
+  document.getElementById('orb-glow').style.backgroundColor = glowColor;
+
+  document.getElementById('sum-display').innerHTML = buildDigitSpans(s, prevSum);
+
+  const bucket = sumToBucket(s);
+  histCounts[bucket]++;
+
+  const key = s.toPrecision(17);
+  seenValues.add(key);
+
+  drawHistogram();
+  triggerPulse(hue);
+
+  document.getElementById('stat-iters').textContent = iterations.toLocaleString();
+  document.getElementById('stat-delta').textContent = (globalMax - globalMin).toExponential(3);
+  document.getElementById('stat-unique').textContent = seenValues.size.toLocaleString();
+
+  prevSum = s;
+  animId = requestAnimationFrame(tick);
+}
+
+// ── Controls
+const btnGo = document.getElementById('btn-go');
+const btnReset = document.getElementById('btn-reset');
+const speedInput = document.getElementById('speed');
+const speedLabel = document.getElementById('speed-val');
+
+btnGo.addEventListener('click', () => {
+  running = !running;
+  if (running) {
+    btnGo.textContent = '⏸ PAUSE';
+    btnGo.classList.add('active');
+    animId = requestAnimationFrame(tick);
+  } else {
+    btnGo.textContent = '▶ GO';
+    btnGo.classList.remove('active');
+    cancelAnimationFrame(animId);
+  }
+});
+
+btnReset.addEventListener('click', () => {
+  running = false;
+  btnGo.textContent = '▶ GO';
+  btnGo.classList.remove('active');
+  cancelAnimationFrame(animId);
+
+  iterations = 0;
+  prevSum = null;
+  globalMin = Infinity;
+  globalMax = -Infinity;
+  histCounts.fill(0);
+  seenValues.clear();
+  warmup();
+
+  document.getElementById('orb').style.backgroundColor = '#1a1a3a';
+  document.getElementById('orb-glow').style.backgroundColor = '#0a0a1a';
+  document.getElementById('sum-display').innerHTML = '···';
+  document.getElementById('stat-iters').textContent = '0';
+  document.getElementById('stat-delta').textContent = '—';
+  document.getElementById('stat-unique').textContent = '0';
+  ctx.clearRect(0, 0, 400, 50);
+});
+
+speedInput.addEventListener('input', () => {
+  targetFps = parseInt(speedInput.value);
+  speedLabel.textContent = `${targetFps} fps`;
+});
+
+// Initial render
+const initSum = naiveSum(shuffle(NUMS));
+const initHue = sumToHue(initSum);
+document.getElementById('orb').style.backgroundColor = `hsl(${initHue}, 85%, 52%)`;
+document.getElementById('orb-glow').style.backgroundColor = `hsl(${initHue}, 90%, 35%)`;
+document.getElementById('sum-display').innerHTML = `<span class="digit-stable">${initSum.toPrecision(18)}</span>`;
+histCounts[sumToBucket(initSum)]++;
+drawHistogram();
+</script>
+</body>
+</html>

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Floating Point Non-Associativity: The Duel</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #080810;
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    color: #fff;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-size: 0.72rem;
+    color: #666;
+    letter-spacing: 0.05em;
+  }
+
+  .arena {
+    display: flex;
+    gap: 4px;
+    width: min(98vw, 820px);
+    align-items: stretch;
+  }
+
+  .panel {
+    flex: 1;
+    border-radius: 8px;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    transition: background-color 0.12s ease;
+    min-height: 380px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .panel-bg {
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    opacity: 0.15;
+    transition: background-color 0.12s ease;
+    pointer-events: none;
+  }
+
+  .panel-title {
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+  }
+
+  .sum-display {
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    line-height: 1.8;
+    text-align: center;
+    word-break: break-all;
+    min-height: 60px;
+  }
+
+  .d-stable   { color: rgba(255,255,255,0.9); }
+  .d-matching { color: #88ffaa; }
+  .d-diverged { color: #ff6666; font-weight: bold; text-decoration: underline; }
+
+  .step-list {
+    width: 100%;
+    height: 160px;
+    overflow-y: auto;
+    font-size: 0.58rem;
+    color: #555;
+    line-height: 1.7;
+    border-top: 1px solid #222;
+    padding-top: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: #333 transparent;
+  }
+
+  .step-list .step {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 4px;
+    border-radius: 2px;
+  }
+
+  .step.highlight {
+    background: rgba(255,255,255,0.06);
+    color: #999;
+  }
+
+  .step .step-num { color: #444; min-width: 28px; }
+  .step .step-op  { color: #666; flex: 1; }
+  .step .step-res { color: #888; text-align: right; }
+
+  .divider {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 8px;
+    color: #333;
+    font-size: 0.72rem;
+  }
+
+  .vs-badge {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #555;
+    letter-spacing: 0.05em;
+  }
+
+  .diff-display {
+    font-size: 0.6rem;
+    text-align: center;
+    color: #666;
+    line-height: 1.7;
+  }
+
+  .diff-val {
+    color: #f0c060;
+    font-size: 0.75rem;
+    display: block;
+    margin: 4px 0;
+  }
+
+  .winner-badge {
+    font-size: 0.58rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    text-align: center;
+    min-height: 16px;
+  }
+
+  .winner-left  { color: #66aaff; }
+  .winner-right { color: #ff8866; }
+  .winner-tie   { color: #aaa; }
+
+  .iteration-count {
+    font-size: 0.62rem;
+    color: #444;
+    text-align: center;
+    letter-spacing: 0.06em;
+  }
+
+  /* Colored border glow on panels */
+  #panel-left  { border: 1px solid #1a2a3a; }
+  #panel-right { border: 1px solid #2a1a1a; }
+
+  #controls {
+    margin-top: 22px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  button {
+    padding: 10px 28px;
+    border: 1px solid #333;
+    background: #111120;
+    color: #ccc;
+    font-family: inherit;
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+  button:hover { border-color: #666; color: #fff; }
+  button.active { border-color: #f0c060; color: #f0c060; }
+
+  .speed-label { font-size: 0.68rem; color: #555; }
+  input[type=range] { accent-color: #f0c060; width: 90px; }
+
+  #explanation {
+    margin-top: 20px;
+    max-width: 600px;
+    font-size: 0.68rem;
+    color: #444;
+    text-align: center;
+    line-height: 1.8;
+  }
+
+  .score-bar {
+    width: 100%;
+    display: flex;
+    height: 4px;
+    border-radius: 2px;
+    overflow: hidden;
+    background: #1a1a1a;
+    margin-top: 2px;
+  }
+  .score-bar-left  { background: #66aaff; transition: width 0.3s; height: 100%; }
+  .score-bar-right { background: #ff8866; transition: width 0.3s; height: 100%; }
+  .score-bar-tie   { background: #555; transition: width 0.3s; height: 100%; }
+
+  .score-labels {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.58rem;
+    color: #444;
+    margin-top: 2px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Left vs Right</h1>
+  <p class="subtitle">
+    Same array · Left sums L→R · Right sums R→L · Watch the digits diverge
+  </p>
+</header>
+
+<div class="arena">
+  <!-- LEFT PANEL -->
+  <div class="panel" id="panel-left">
+    <div class="panel-bg" id="bg-left"></div>
+    <div class="panel-title">← Left to Right</div>
+    <div class="sum-display" id="disp-left"><span class="d-stable">·····</span></div>
+    <div class="step-list" id="steps-left"></div>
+  </div>
+
+  <!-- MIDDLE DIVIDER -->
+  <div class="divider">
+    <div class="vs-badge">VS</div>
+
+    <div class="diff-display">
+      <span>difference</span>
+      <span class="diff-val" id="diff-val">—</span>
+      <span>in ULPs</span>
+      <span class="diff-val" id="ulp-val">—</span>
+    </div>
+
+    <div class="winner-badge" id="winner-badge">—</div>
+
+    <div class="iteration-count" id="iter-count">iter 0</div>
+
+    <div style="width:80px">
+      <div class="score-bar">
+        <div class="score-bar-left"  id="score-left"  style="width:33%"></div>
+        <div class="score-bar-tie"   id="score-tie"   style="width:34%"></div>
+        <div class="score-bar-right" id="score-right" style="width:33%"></div>
+      </div>
+      <div class="score-labels">
+        <span id="score-l-label" style="color:#66aaff">0</span>
+        <span style="color:#555">·</span>
+        <span id="score-r-label" style="color:#ff8866">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel" id="panel-right">
+    <div class="panel-bg" id="bg-right"></div>
+    <div class="panel-title">Right to Left →</div>
+    <div class="sum-display" id="disp-right"><span class="d-stable">·····</span></div>
+    <div class="step-list" id="steps-right"></div>
+  </div>
+</div>
+
+<div id="controls">
+  <button id="btn-go">▶ GO</button>
+  <button id="btn-step">STEP</button>
+  <button id="btn-reset">↺ RESET</button>
+  <span class="speed-label">Speed</span>
+  <input type="range" id="speed" min="1" max="20" value="5">
+  <span class="speed-label" id="speed-val">5 fps</span>
+</div>
+
+<div id="explanation">
+  Left panel adds a<sub>1</sub>+a<sub>2</sub>+…+a<sub>n</sub> &nbsp;|&nbsp;
+  Right panel adds a<sub>n</sub>+a<sub>n-1</sub>+…+a<sub>1</sub><br>
+  The same 50 numbers. Different partial sums accumulate different rounding errors.
+  <span style="color:#f0c060">Red digits</span> show where the answers have diverged.
+</div>
+
+<script>
+const NUMS = [
+  1/3, 2/3, 1/6, 5/6, 1/7, 2/7, 3/7, 4/7, 5/7, 6/7,
+  1/9, 2/9, 4/9, 5/9, 7/9, 8/9,
+  1/11, 2/11, 3/11, 4/11, 5/11,
+  1/13, 2/13, 3/13, 4/13,
+  Math.PI / 10, Math.PI / 20, Math.PI / 30,
+  Math.E / 10, Math.E / 20,
+  Math.SQRT2 / 10, Math.LN2 / 5,
+  0.1, 0.2, 0.3, 0.4, 0.6, 0.7, 0.8,
+  1/12, 5/12, 7/12, 11/12,
+  1/14, 3/14, 5/14,
+  1/15, 2/15, 4/15, 7/15
+];
+
+// Each duel uses a fresh shuffle of NUMS
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = (Math.random() * (i + 1)) | 0;
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+// Get all partial sums in both directions
+function computeDuel(arr) {
+  const n = arr.length;
+  const leftPartials = [];
+  let s = 0;
+  for (let i = 0; i < n; i++) { s += arr[i]; leftPartials.push({ val: s, num: arr[i], idx: i }); }
+
+  const rightPartials = [];
+  s = 0;
+  for (let i = n - 1; i >= 0; i--) { s += arr[i]; rightPartials.push({ val: s, num: arr[i], idx: i }); }
+
+  return {
+    left:  leftPartials[n - 1].val,
+    right: rightPartials[n - 1].val,
+    leftPartials,
+    rightPartials
+  };
+}
+
+// ULP distance (rough)
+function ulpDistance(a, b) {
+  const buf = new ArrayBuffer(8);
+  const view = new DataView(buf);
+  view.setFloat64(0, a); const la = view.getBigInt64(0);
+  view.setFloat64(0, b); const lb = view.getBigInt64(0);
+  const diff = la - lb;
+  return diff < 0n ? -diff : diff;
+}
+
+// Build digit-by-digit HTML comparing two number strings
+function diffSpans(current, other) {
+  const cs = current.toPrecision(18);
+  const os = other.toPrecision(18);
+
+  let firstDiff = -1;
+  for (let i = 0; i < cs.length; i++) {
+    if (i >= os.length || cs[i] !== os[i]) { firstDiff = i; break; }
+  }
+
+  if (firstDiff === -1) {
+    return `<span class="d-matching">${cs}</span>`;
+  }
+
+  const matching  = cs.slice(0, firstDiff);
+  const diverged  = cs.slice(firstDiff);
+  return `<span class="d-matching">${matching}</span><span class="d-diverged">${diverged}</span>`;
+}
+
+// Color for a panel (hue based on value)
+let globalMin = Infinity, globalMax = -Infinity;
+function warmup() {
+  for (let i = 0; i < 400; i++) {
+    const arr = shuffle(NUMS);
+    let s = 0; arr.forEach(x => s += x);
+    if (s < globalMin) globalMin = s;
+    if (s > globalMax) globalMax = s;
+  }
+}
+warmup();
+
+function valToHue(v) {
+  const range = globalMax - globalMin;
+  if (range === 0) return 200;
+  return ((v - globalMin) / range) * 260 + 20; // 20=orange..280=blue
+}
+
+// ── State
+let running = false;
+let iteration = 0;
+let scoreLeft = 0, scoreRight = 0, scoreTie = 0;
+let animId = null;
+let lastFrameTime = 0;
+let targetFps = 5;
+
+function runOneDuel() {
+  const arr = shuffle(NUMS);
+  const { left, right, leftPartials, rightPartials } = computeDuel(arr);
+
+  iteration++;
+
+  if (left < globalMin) globalMin = left;
+  if (left > globalMax) globalMax = left;
+  if (right < globalMin) globalMin = right;
+  if (right > globalMax) globalMax = right;
+
+  const hueL = valToHue(left);
+  const hueR = valToHue(right);
+
+  // Panel colors
+  const panelL = document.getElementById('panel-left');
+  const panelR = document.getElementById('panel-right');
+  const bgL = document.getElementById('bg-left');
+  const bgR = document.getElementById('bg-right');
+  panelL.style.borderColor = `hsl(${hueL.toFixed(0)}, 60%, 30%)`;
+  panelR.style.borderColor = `hsl(${hueR.toFixed(0)}, 60%, 30%)`;
+  bgL.style.backgroundColor = `hsl(${hueL.toFixed(0)}, 80%, 45%)`;
+  bgR.style.backgroundColor = `hsl(${hueR.toFixed(0)}, 80%, 45%)`;
+
+  // Sum displays
+  document.getElementById('disp-left').innerHTML  = diffSpans(left, right);
+  document.getElementById('disp-right').innerHTML = diffSpans(right, left);
+
+  // Difference
+  const rawDiff = Math.abs(left - right);
+  document.getElementById('diff-val').textContent = rawDiff === 0 ? '0' : rawDiff.toExponential(3);
+  document.getElementById('ulp-val').textContent = rawDiff === 0 ? '0 ULPs' : ulpDistance(left, right).toString() + ' ULPs';
+
+  // Step lists
+  function buildStepHTML(partials, labelFn) {
+    return partials.map((p, i) => {
+      const hl = i === partials.length - 1 ? ' highlight' : '';
+      return `<div class="step${hl}">
+        <span class="step-num">${i + 1}.</span>
+        <span class="step-op">+${p.num.toFixed(6)}</span>
+        <span class="step-res">= ${p.val.toPrecision(12)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  const stepsL = document.getElementById('steps-left');
+  const stepsR = document.getElementById('steps-right');
+  stepsL.innerHTML = buildStepHTML(leftPartials);
+  stepsR.innerHTML = buildStepHTML(rightPartials);
+  stepsL.scrollTop = stepsL.scrollHeight;
+  stepsR.scrollTop = stepsR.scrollHeight;
+
+  // Winner
+  const winnerEl = document.getElementById('winner-badge');
+  if (rawDiff === 0) {
+    scoreTie++;
+    winnerEl.textContent = 'IDENTICAL';
+    winnerEl.className = 'winner-badge winner-tie';
+  } else if (left < right) {
+    scoreLeft++;
+    winnerEl.textContent = '← smaller';
+    winnerEl.className = 'winner-badge winner-left';
+  } else {
+    scoreRight++;
+    winnerEl.textContent = 'smaller →';
+    winnerEl.className = 'winner-badge winner-right';
+  }
+
+  // Score bar
+  const total = scoreLeft + scoreRight + scoreTie || 1;
+  const pL = (scoreLeft / total * 100).toFixed(1);
+  const pT = (scoreTie  / total * 100).toFixed(1);
+  const pR = (scoreRight/ total * 100).toFixed(1);
+  document.getElementById('score-left').style.width  = pL + '%';
+  document.getElementById('score-tie').style.width   = pT + '%';
+  document.getElementById('score-right').style.width = pR + '%';
+  document.getElementById('score-l-label').textContent = scoreLeft;
+  document.getElementById('score-r-label').textContent = scoreRight;
+
+  document.getElementById('iter-count').textContent = `iter ${iteration}`;
+}
+
+// ── Animation loop
+function tick(ts) {
+  if (!running) return;
+  const interval = 1000 / targetFps;
+  if (ts - lastFrameTime >= interval) {
+    lastFrameTime = ts;
+    runOneDuel();
+  }
+  animId = requestAnimationFrame(tick);
+}
+
+// ── Controls
+const btnGo   = document.getElementById('btn-go');
+const btnStep = document.getElementById('btn-step');
+const btnReset= document.getElementById('btn-reset');
+const speedInp= document.getElementById('speed');
+const speedLbl= document.getElementById('speed-val');
+
+btnGo.addEventListener('click', () => {
+  running = !running;
+  if (running) {
+    btnGo.textContent = '⏸ PAUSE';
+    btnGo.classList.add('active');
+    animId = requestAnimationFrame(tick);
+  } else {
+    btnGo.textContent = '▶ GO';
+    btnGo.classList.remove('active');
+    cancelAnimationFrame(animId);
+  }
+});
+
+btnStep.addEventListener('click', () => {
+  if (!running) runOneDuel();
+});
+
+btnReset.addEventListener('click', () => {
+  running = false;
+  btnGo.textContent = '▶ GO';
+  btnGo.classList.remove('active');
+  cancelAnimationFrame(animId);
+
+  iteration = 0; scoreLeft = 0; scoreRight = 0; scoreTie = 0;
+  globalMin = Infinity; globalMax = -Infinity;
+  warmup();
+
+  document.getElementById('disp-left').innerHTML  = '<span class="d-stable">·····</span>';
+  document.getElementById('disp-right').innerHTML = '<span class="d-stable">·····</span>';
+  document.getElementById('steps-left').innerHTML  = '';
+  document.getElementById('steps-right').innerHTML = '';
+  document.getElementById('diff-val').textContent = '—';
+  document.getElementById('ulp-val').textContent  = '—';
+  document.getElementById('winner-badge').textContent = '—';
+  document.getElementById('winner-badge').className   = 'winner-badge';
+  document.getElementById('iter-count').textContent   = 'iter 0';
+  document.getElementById('score-left').style.width   = '33%';
+  document.getElementById('score-tie').style.width    = '34%';
+  document.getElementById('score-right').style.width  = '33%';
+  document.getElementById('score-l-label').textContent = '0';
+  document.getElementById('score-r-label').textContent = '0';
+});
+
+speedInp.addEventListener('input', () => {
+  targetFps = parseInt(speedInp.value);
+  speedLbl.textContent = `${targetFps} fps`;
+});
+
+// Initial duel render
+runOneDuel();
+</script>
+</body>
+</html>

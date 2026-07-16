@@ -48,61 +48,63 @@
 
 	.ca__rows {
 		display: grid;
-		gap: 14px;
+		gap: 18px;
 		text-align: left;
 	}
 
 	.ca__row {
 		display: flex;
-		gap: 16px;
+		gap: 20px;
 		align-items: flex-start;
-		background: #11151d;
-		border: 1px solid #232b3b;
-		border-radius: 12px;
-		padding: 16px 20px;
+		background: #f6f9fe;
+		border: 1px solid #d7e3f4;
+		border-radius: 14px;
+		padding: 22px 28px;
+		box-shadow: 0 10px 28px rgba(23, 58, 110, 0.06);
 	}
 
 	.ca__mark {
-		font-size: clamp(18px, 2vw, 24px);
+		font-size: clamp(24px, 2.6vw, 34px);
 		line-height: 1.3;
 	}
 
 	.ca__mark--ok {
-		color: #6ee7a0;
+		color: #1d9e57;
 	}
 
 	.ca__mark--bad {
-		color: #ff6b66;
+		color: #d6453d;
 	}
 
 	.ca__title {
-		margin: 0 0 6px;
-		font-size: clamp(15px, 1.6vw, 20px);
-		color: #e8edf7;
+		margin: 0 0 8px;
+		font-size: clamp(20px, 2.2vw, 28px);
+		color: #14356e;
 	}
 
 	.ca__desc {
 		margin: 0;
-		font-size: clamp(13px, 1.4vw, 16px);
+		font-size: clamp(17px, 1.8vw, 23px);
 		line-height: 1.55;
-		color: #aab4c8;
+		color: #3c4f78;
 	}
 
 	.ca__mono {
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 		font-size: 0.9em;
-		color: #c9d3e4;
+		color: #1d2c4e;
 	}
 
 	.ca__verdict {
-		margin: 22px 0 0;
-		font-size: clamp(16px, 1.9vw, 24px);
+		margin: 26px 0 0;
+		font-size: clamp(21px, 2.4vw, 32px);
 		line-height: 1.5;
-		color: #c9d3e4;
+		color: #1d2c4e;
 	}
 
 	.ca__verdict em {
-		color: #ffb454;
+		color: #2a7de1;
 		font-style: normal;
+		font-weight: 700;
 	}
 </style>

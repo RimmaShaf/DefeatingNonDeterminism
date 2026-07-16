@@ -1,0 +1,10 @@
+# Smoke test config — minimal cells to verify the harness end-to-end.
+# 1 model x 1 prompt x 2 temps x 5 runs = 10 completions, ~40s wall-clock.
+prompts:
+  - {id: math_det, category: deterministic-arithmetic, text: "What is 17 * 23? Answer with just the number."}
+models:
+  - {provider: ollama, name: "gemma4:latest"}
+temperatures: [0.0, 0.7]
+n_runs: 5
+max_tokens: 64
+top_p: 1.0

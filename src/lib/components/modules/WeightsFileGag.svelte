@@ -90,7 +90,7 @@
 		flex: 1;
 		color: #ccc;
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 13px;
+		font-size: 16px;
 		text-align: center;
 		white-space: nowrap;
 		overflow: hidden;
@@ -102,8 +102,8 @@
 		color: #eee;
 		border: none;
 		border-radius: 6px;
-		padding: 4px 10px;
-		font-size: 12px;
+		padding: 6px 14px;
+		font-size: 15px;
 		cursor: pointer;
 		white-space: nowrap;
 	}
@@ -127,7 +127,7 @@
 		width: max-content;
 		color: #9cdcfe;
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 13.5px;
+		font-size: 17px;
 		line-height: 1.5;
 		transform-origin: top left;
 		transition:

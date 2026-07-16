@@ -82,48 +82,50 @@
 
 	.cod__chip {
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: clamp(13px, 1.4vw, 18px);
-		color: #8b95a7;
-		border: 1px solid #2a3242;
+		font-size: clamp(16px, 1.7vw, 22px);
+		color: #46618f;
+		border: 1px solid #b8cdec;
 		border-radius: 999px;
-		padding: 6px 16px;
+		padding: 8px 20px;
 	}
 
 	.cod__panes {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
-		gap: 20px;
+		gap: 24px;
 	}
 
 	.cod__pane {
-		background: #11151d;
-		border: 1px solid #232b3b;
-		border-radius: 12px;
-		padding: 20px 24px;
+		background: #f6f9fe;
+		border: 1px solid #d7e3f4;
+		border-radius: 14px;
+		padding: 24px 28px;
 		min-height: 11em;
 		text-align: left;
+		box-shadow: 0 10px 28px rgba(23, 58, 110, 0.06);
 	}
 
 	.cod__pane-head {
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 13px;
-		color: #5b6678;
+		font-size: clamp(14px, 1.4vw, 17px);
+		color: #2a7de1;
 		text-transform: uppercase;
 		letter-spacing: 0.12em;
-		margin-bottom: 12px;
+		margin-bottom: 14px;
 	}
 
 	.cod__text {
 		margin: 0;
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: clamp(14px, 1.5vw, 19px);
+		font-size: clamp(17px, 1.8vw, 24px);
 		line-height: 1.6;
-		color: #c9d3e4;
+		color: #1d2c4e;
 		min-height: 8em;
 	}
 
 	.cod__diff--on {
-		color: #ff6b66;
+		color: #d6453d;
+		font-weight: 700;
 	}
 
 	.cod__caret {
@@ -135,7 +137,7 @@
 	}
 
 	.cod__caret--blink {
-		background: #c9d3e4;
+		background: #1d2c4e;
 		animation: cod-blink 0.8s steps(1) infinite;
 	}
 
@@ -146,18 +148,19 @@
 	}
 
 	.cod__play {
-		margin-top: 24px;
-		background: #1d2535;
-		color: #e8edf7;
-		border: 1px solid #34405a;
-		border-radius: 10px;
-		padding: 10px 28px;
-		font-size: 16px;
+		margin-top: 28px;
+		background: #2a7de1;
+		color: #ffffff;
+		border: none;
+		border-radius: 12px;
+		padding: 14px 36px;
+		font-size: clamp(17px, 1.7vw, 22px);
+		font-weight: 600;
 		cursor: pointer;
 	}
 
 	.cod__play:hover:not(:disabled) {
-		background: #263049;
+		background: #1e63b8;
 	}
 
 	.cod__play:disabled {
@@ -166,9 +169,9 @@
 	}
 
 	.cod__footnote {
-		margin-top: 20px;
-		font-size: 13px;
-		color: #5b6678;
+		margin-top: 22px;
+		font-size: clamp(14px, 1.4vw, 18px);
+		color: #5f739c;
 	}
 
 	@media (max-width: 760px) {

@@ -30,60 +30,62 @@
 	.sob {
 		width: 100%;
 		display: grid;
-		gap: 16px;
+		gap: 20px;
 		text-align: left;
 	}
 
 	.sob__card {
-		background: #11151d;
-		border: 1px solid #232b3b;
-		border-radius: 12px;
-		padding: 16px 20px;
+		background: #f6f9fe;
+		border: 1px solid #d7e3f4;
+		border-radius: 14px;
+		padding: 22px 28px;
+		box-shadow: 0 10px 28px rgba(23, 58, 110, 0.06);
 	}
 
 	.sob__label {
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 12px;
+		font-size: clamp(14px, 1.4vw, 17px);
 		letter-spacing: 0.12em;
 		text-transform: uppercase;
-		color: #5b6678;
-		margin-bottom: 10px;
+		color: #2a7de1;
+		margin-bottom: 12px;
 	}
 
 	.sob__code {
 		margin: 0;
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: clamp(13px, 1.5vw, 17px);
+		font-size: clamp(17px, 1.9vw, 25px);
 		line-height: 1.65;
-		color: #c9d3e4;
+		color: #1d2c4e;
 		overflow-x: auto;
 	}
 
 	.sob__prompt {
-		color: #5b6678;
+		color: #7d8db0;
 	}
 
 	.sob__comment {
-		color: #5b6678;
+		color: #7d8db0;
 	}
 
 	.sob__ok {
-		color: #6ee7a0;
+		color: #1d9e57;
+		font-weight: 700;
 	}
 
 	.sob__bad {
-		color: #ff6b66;
+		color: #d6453d;
 		font-weight: 700;
 	}
 
 	.sob__caption {
-		margin: 4px 0 0;
+		margin: 6px 0 0;
 		text-align: center;
-		font-size: clamp(15px, 1.7vw, 21px);
-		color: #aab4c8;
+		font-size: clamp(20px, 2.2vw, 29px);
+		color: #3c4f78;
 	}
 
 	.sob__caption strong {
-		color: #ffb454;
+		color: #2a7de1;
 	}
 </style>

@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Patriot Missile Failure — 0.1 Is Not a Binary Number</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #080810;
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    padding: 32px 20px 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 36px;
+    max-width: 780px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 300;
+    letter-spacing: 0.18em;
+    color: #fff;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .subtitle {
+    font-size: 0.78rem;
+    color: #888;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+  }
+  .subtitle b { color: #ff8a8a; font-weight: 400; }
+
+  h2 {
+    font-size: 0.85rem;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    color: #fff;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #222;
+  }
+  .h2-note {
+    font-size: 0.72rem;
+    color: #888;
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+  .h2-note em { color: #9bd8ff; font-style: normal; }
+
+  .section {
+    width: min(96vw, 900px);
+    background: #0d0d18;
+    border: 1px solid #1c1c2a;
+    border-radius: 10px;
+    padding: 26px 28px;
+    margin-bottom: 28px;
+  }
+
+  /* ====== Section 1: the broken number ====== */
+
+  .expansion {
+    background: #07070f;
+    border: 1px solid #1c1c2a;
+    border-radius: 8px;
+    padding: 18px 16px;
+    overflow-x: auto;
+    white-space: nowrap;
+    font-size: 1.05rem;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  .expansion .prefix { color: #999; }
+  .expansion .kept { color: #7ee9a3; }
+  .expansion .chopped { color: #ff6b6b; opacity: 0.85; }
+  .expansion .ellipsis { color: #ff6b6b; opacity: 0.5; }
+  .register-edge {
+    display: inline-block;
+    width: 2px;
+    height: 1.3em;
+    background: #ffd166;
+    vertical-align: text-bottom;
+    margin: 0 3px;
+    box-shadow: 0 0 8px #ffd166aa;
+  }
+  .expansion-legend {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+    font-size: 0.7rem;
+    color: #888;
+    margin-bottom: 20px;
+    padding: 0 2px;
+  }
+  .swatch {
+    display: inline-block;
+    width: 9px; height: 9px;
+    border-radius: 2px;
+    margin-right: 6px;
+  }
+
+  .bits-control {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    font-size: 0.75rem;
+    color: #aaa;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    flex: 1;
+    min-width: 180px;
+    height: 4px;
+    background: #222236;
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #ffd166;
+    cursor: pointer;
+    box-shadow: 0 0 10px #ffd16688;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #ffd166;
+    cursor: pointer;
+    border: none;
+  }
+  .bits-readout { color: #ffd166; min-width: 7.5em; }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px;
+  }
+  .stat-card {
+    background: #11111d;
+    border: 1px solid #1e1e2e;
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .stat-label {
+    font-size: 0.64rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #777;
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+  .stat-value {
+    font-size: 1.05rem;
+    color: #fff;
+    line-height: 1.3;
+    word-break: break-all;
+  }
+  .stat-value.green { color: #7ee9a3; }
+  .stat-value.red { color: #ff6b6b; }
+  .stat-value.amber { color: #ffd166; }
+  .stat-sub { font-size: 0.66rem; color: #777; margin-top: 6px; line-height: 1.5; }
+
+  /* ====== Section 2: the drift ====== */
+
+  .uptime-control { margin-bottom: 20px; }
+  .uptime-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 0.75rem;
+    color: #aaa;
+  }
+  .uptime-big { font-size: 1.5rem; color: #ffd166; }
+  .uptime-marks {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.62rem;
+    color: #666;
+    margin-top: 6px;
+  }
+  .uptime-marks span { cursor: pointer; }
+  .uptime-marks span:hover { color: #ffd166; }
+
+  .clock-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  @media (max-width: 640px) { .clock-panel { grid-template-columns: 1fr; } }
+  .clock-card {
+    background: #07070f;
+    border: 1px solid #1e1e2e;
+    border-radius: 8px;
+    padding: 16px 18px;
+    text-align: center;
+  }
+  .clock-card .stat-label { margin-bottom: 10px; }
+  .clock-time {
+    font-size: 1.45rem;
+    letter-spacing: 0.06em;
+    color: #7ee9a3;
+  }
+  .clock-time.lagging { color: #ff6b6b; }
+  .clock-sub { font-size: 0.66rem; color: #777; margin-top: 8px; }
+
+  .gao-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.72rem;
+    margin-top: 18px;
+  }
+  .gao-table th, .gao-table td {
+    padding: 7px 10px;
+    text-align: right;
+    border-bottom: 1px solid #1a1a28;
+  }
+  .gao-table th {
+    color: #777;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 0.6rem;
+  }
+  .gao-table td:first-child, .gao-table th:first-child { text-align: left; color: #aaa; }
+  .gao-table tr.current td { background: #ffd16612; color: #ffd166; }
+  .gao-table td.danger { color: #ff6b6b; }
+
+  /* ====== Section 3: the range gate ====== */
+
+  canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+    background: #07070f;
+    border: 1px solid #1c1c2a;
+  }
+  .verdict {
+    margin-top: 14px;
+    padding: 13px 16px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+  .verdict.ok {
+    background: #0d2018;
+    border: 1px solid #1e4a34;
+    color: #7ee9a3;
+  }
+  .verdict.fail {
+    background: #200d0d;
+    border: 1px solid #4a1e1e;
+    color: #ff6b6b;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse { 50% { box-shadow: 0 0 18px #ff6b6b33 inset; } }
+
+  /* ====== Timeline ====== */
+
+  .timeline { list-style: none; }
+  .timeline li {
+    display: flex;
+    gap: 16px;
+    padding: 9px 0;
+    border-bottom: 1px solid #14141f;
+    font-size: 0.74rem;
+    line-height: 1.6;
+  }
+  .timeline li:last-child { border-bottom: none; }
+  .timeline .date {
+    color: #ffd166;
+    min-width: 6.5em;
+    flex-shrink: 0;
+  }
+  .timeline .event { color: #bbb; }
+  .timeline .event b { color: #ff8a8a; font-weight: 400; }
+
+  footer {
+    max-width: 780px;
+    font-size: 0.66rem;
+    color: #666;
+    line-height: 1.7;
+    text-align: center;
+  }
+  footer a { color: #9bd8ff; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>0.1 Is Not a Binary Number</h1>
+  <div class="subtitle">
+    Dhahran, Saudi Arabia — February 25, 1991. A Patriot battery fails to track an incoming
+    Scud, which strikes a US Army barracks. <b>28 soldiers die, ~100 are injured.</b><br>
+    Root cause: the system clock counted time in tenths of a second —
+    and 1/10 cannot be written exactly in binary.
+  </div>
+</header>
+
+<!-- ====== SECTION 1 ====== -->
+<div class="section">
+  <h2>1 · The Broken Number</h2>
+  <div class="h2-note">
+    In binary, 1/10 is the infinite repeating fraction
+    <em>0.0001100110011001100&hellip;₂</em> — the pattern <em>1100</em> repeats forever.
+    The Patriot's weapons-control computer stored it in a <em>24-bit fixed-point register</em>.
+    Everything past the register edge is simply <em>chopped off</em>.
+  </div>
+
+  <div class="expansion" id="expansion"></div>
+  <div class="expansion-legend">
+    <span><span class="swatch" style="background:#7ee9a3"></span>bits kept in the register</span>
+    <span><span class="swatch" style="background:#ffd166"></span>register edge</span>
+    <span><span class="swatch" style="background:#ff6b6b"></span>bits chopped — the error</span>
+  </div>
+
+  <div class="bits-control">
+    <span>register precision</span>
+    <input type="range" id="bitsSlider" min="8" max="40" step="1" value="23">
+    <span class="bits-readout" id="bitsReadout"></span>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-label">value actually stored</div>
+      <div class="stat-value green" id="storedValue"></div>
+      <div class="stat-sub">what the register believes "one tenth of a second" is</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">error per clock tick</div>
+      <div class="stat-value red" id="tickError"></div>
+      <div class="stat-sub">0.1 − stored value &mdash; lost <i>every single tick</i>, 10 times a second</div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SECTION 2 ====== -->
+<div class="section">
+  <h2>2 · The Drift</h2>
+  <div class="h2-note">
+    A tiny error is harmless once. But the clock ticks <em>10 times per second</em> and
+    the error is <em>chopping</em>, not rounding — it always falls the same way, so it
+    never cancels. It just accumulates, for as long as the system stays on.
+    The Dhahran battery had been running for <em>~100 hours straight</em>.
+  </div>
+
+  <div class="uptime-control">
+    <div class="uptime-header">
+      <span>system uptime</span>
+      <span class="uptime-big"><span id="uptimeReadout">100.0</span> h</span>
+    </div>
+    <input type="range" id="uptimeSlider" min="0" max="100" step="0.1" value="100">
+    <div class="uptime-marks">
+      <span data-h="0">0 h · reboot</span>
+      <span data-h="8">8 h · Israeli warning</span>
+      <span data-h="20">20 h</span>
+      <span data-h="100">100 h · Dhahran</span>
+    </div>
+  </div>
+
+  <div class="clock-panel">
+    <div class="clock-card">
+      <div class="stat-label">true elapsed time</div>
+      <div class="clock-time" id="trueClock">100:00:00.000</div>
+      <div class="clock-sub">wall clock</div>
+    </div>
+    <div class="clock-card">
+      <div class="stat-label">patriot internal clock</div>
+      <div class="clock-time lagging" id="patriotClock"></div>
+      <div class="clock-sub">tick count × stored "0.1"</div>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-label">ticks counted</div>
+      <div class="stat-value" id="tickCount"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">accumulated clock error</div>
+      <div class="stat-value red" id="driftValue"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">scud travel in that time <span style="color:#555">(1,676 m/s)</span></div>
+      <div class="stat-value amber" id="missValue"></div>
+    </div>
+  </div>
+
+  <table class="gao-table" id="gaoTable">
+    <thead>
+      <tr><th>uptime</th><th>clock error (s)</th><th>range-gate shift (m)</th><th>tracking</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<!-- ====== SECTION 3 ====== -->
+<div class="section">
+  <h2>3 · The Range Gate</h2>
+  <div class="h2-note">
+    To confirm a target, the radar predicts where the Scud will be at the next pulse —
+    <em>position = velocity × elapsed time</em> — and only looks inside a small window
+    around that prediction: the <em>range gate</em>. Feed that formula a drifted clock,
+    and the gate opens in the wrong place. The Scud is real, the radar is fine —
+    but the software looks where the Scud <em>was</em>, finds nothing,
+    and drops the track as a false alarm. Drag the uptime slider above and watch.
+  </div>
+
+  <canvas id="gateCanvas" width="1688" height="440"></canvas>
+  <div class="verdict ok" id="verdict"></div>
+</div>
+
+<!-- ====== SECTION 4 ====== -->
+<div class="section">
+  <h2>4 · The Bitter Timeline</h2>
+  <ul class="timeline">
+    <li><span class="date">Feb 11, 1991</span><span class="event">Israeli forces, running batteries for long stretches, report the tracking drift to the US Army after 8 hours of continuous operation.</span></li>
+    <li><span class="date">Feb 16, 1991</span><span class="event">Software fix completed. Meanwhile the field workaround is simple: <b>reboot regularly</b> — it resets the tick counter to zero. But no one says how often "regularly" is.</span></li>
+    <li><span class="date">Feb 25, 1991</span><span class="event">Dhahran battery, up ~100 hours, clock off by 0.34 s — the gate is ~half a kilometer off. The Scud is never engaged. <b>28 dead.</b></span></li>
+    <li><span class="date">Feb 26, 1991</span><span class="event">The fixed software arrives in Dhahran. One day late.</span></li>
+  </ul>
+  <div class="h2-note" style="margin-top:16px; margin-bottom:0;">
+    The final irony: a partial patch had already <em>improved</em> the time conversion in
+    some code paths but not others. Two subsystems computed "the same" timestamp and got
+    <em>different answers</em> — the inconsistency is what shifted the gate. The bug wasn't
+    just imprecision; it was two routines disagreeing about what time it was.
+  </div>
+</div>
+
+<footer>
+  Numbers follow the GAO report (IMTEC-92-26) and D.&nbsp;N.&nbsp;Arnold / M.&nbsp;Mignotte's
+  "disasters attributable to bad numerical computing": per-tick chopping error 0.1&nbsp;&times;&nbsp;2⁻²⁰ ≈ 9.5&times;10⁻⁸ s,
+  drift after 100 h ≈ 0.3433 s, Scud velocity ≈ 1,676 m/s → gate off by ≈ 573 m
+  (GAO's own table quotes 687 m using a slightly different velocity).
+</footer>
+
+<script>
+(() => {
+  // ---------- shared math ----------
+  const SCUD_V = 1676;           // m/s
+  const GATE_HALF = 137;         // m, half-width of range gate (GAO: track degrades ~20 h)
+  const pow2 = b => Math.pow(2, b);
+
+  // truncated (chopped) value of 0.1 with `bits` fractional binary digits
+  function stored(bits) { return Math.floor(0.1 * pow2(bits)) / pow2(bits); }
+  function tickErr(bits) { return 0.1 - stored(bits); }
+
+  // binary expansion of 0.1, `n` digits after the point (pattern 0001 then 1001 repeating... generate properly)
+  function binDigits(n) {
+    let x = 0.1, out = '';
+    for (let i = 0; i < n; i++) { x *= 2; const d = Math.floor(x); out += d; x -= d; }
+    return out;
+  }
+
+  function driftSeconds(hours, bits) {
+    const ticks = Math.round(hours * 3600 * 10);
+    return { ticks, drift: ticks * tickErr(bits) };
+  }
+
+  const fmt = (x, d = 4) => x.toLocaleString('en-US', { maximumFractionDigits: d });
+  const sci = x => {
+    if (x === 0) return '0';
+    const e = Math.floor(Math.log10(Math.abs(x)));
+    return (x / pow2(0) / Math.pow(10, e)).toFixed(2) + '×10' + supExp(e);
+  };
+  const SUP = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+  const supExp = e => String(e).split('').map(c => SUP[c]).join('');
+
+  // ---------- section 1 ----------
+  const bitsSlider = document.getElementById('bitsSlider');
+  const TOTAL_SHOWN = 44;
+
+  function renderExpansion() {
+    const bits = +bitsSlider.value;
+    const digits = binDigits(TOTAL_SHOWN);
+    let html = '<span class="prefix">1/10&nbsp;=&nbsp;0.</span>';
+    html += '<span class="kept">' + digits.slice(0, bits) + '</span>';
+    html += '<span class="register-edge"></span>';
+    html += '<span class="chopped">' + digits.slice(bits) + '</span>';
+    html += '<span class="ellipsis">&hellip; forever</span>';
+    document.getElementById('expansion').innerHTML = html;
+
+    document.getElementById('bitsReadout').textContent =
+      bits + ' fractional bits' + (bits === 23 ? ' (Patriot)' : '');
+    document.getElementById('storedValue').textContent = stored(bits).toFixed(Math.min(bits, 24)) + ' s';
+    document.getElementById('tickError').textContent = '−' + sci(tickErr(bits)) + ' s';
+  }
+
+  // ---------- section 2 ----------
+  const uptimeSlider = document.getElementById('uptimeSlider');
+
+  function fmtClock(sec) {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' +
+           s.toFixed(3).padStart(6, '0');
+  }
+
+  const GAO_ROWS = [0, 1, 8, 20, 48, 72, 100];
+
+  function renderGaoTable(bits, curHours) {
+    const tbody = document.querySelector('#gaoTable tbody');
+    tbody.innerHTML = GAO_ROWS.map(h => {
+      const { drift } = driftSeconds(h, bits);
+      const shift = drift * SCUD_V;
+      const lost = shift > GATE_HALF;
+      const cur = Math.abs(h - curHours) < 0.5;
+      return `<tr class="${cur ? 'current' : ''}">
+        <td>${h} h</td>
+        <td>${drift.toFixed(4)}</td>
+        <td>${fmt(shift, 0)}</td>
+        <td class="${lost ? 'danger' : ''}">${lost ? 'TARGET OUTSIDE GATE' : 'ok'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderDrift() {
+    const bits = +bitsSlider.value;
+    const hours = +uptimeSlider.value;
+    const { ticks, drift } = driftSeconds(hours, bits);
+    const trueSec = hours * 3600;
+    const shift = drift * SCUD_V;
+
+    document.getElementById('uptimeReadout').textContent = hours.toFixed(1);
+    document.getElementById('trueClock').textContent = fmtClock(trueSec);
+    document.getElementById('patriotClock').textContent = fmtClock(trueSec - drift);
+    document.getElementById('tickCount').textContent = fmt(ticks, 0);
+    document.getElementById('driftValue').textContent = '−' + drift.toFixed(4) + ' s';
+    document.getElementById('missValue').textContent = fmt(shift, 0) + ' m';
+    renderGaoTable(bits, hours);
+  }
+
+  document.querySelectorAll('.uptime-marks span').forEach(el =>
+    el.addEventListener('click', () => { uptimeSlider.value = el.dataset.h; update(); }));
+
+  // ---------- section 3: canvas ----------
+  const canvas = document.getElementById('gateCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const verdictEl = document.getElementById('verdict');
+
+  // world: range axis, radar at right. Scud flies right-to-left toward radar.
+  const AXIS_Y = H * 0.62;
+  const M_PER_PX = 3.2;                 // meters per canvas pixel
+  let animT = 0;
+
+  function drawScud(x, y, angle) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.fillStyle = '#e8e8f0';
+    ctx.beginPath();                     // body
+    ctx.moveTo(26, 0); ctx.lineTo(8, -6); ctx.lineTo(-20, -6);
+    ctx.lineTo(-20, 6); ctx.lineTo(8, 6); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#ff8a5c';           // fins
+    ctx.beginPath(); ctx.moveTo(-20, -6); ctx.lineTo(-30, -13); ctx.lineTo(-24, 0); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-20, 6); ctx.lineTo(-30, 13); ctx.lineTo(-24, 0); ctx.closePath(); ctx.fill();
+    // exhaust
+    const flick = 8 + Math.sin(animT * 0.4) * 4;
+    const g = ctx.createLinearGradient(-20, 0, -20 - flick * 3, 0);
+    g.addColorStop(0, '#ffd166'); g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.moveTo(-20, -4); ctx.lineTo(-20 - flick * 3, 0); ctx.lineTo(-20, 4); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawScene() {
+    animT++;
+    const bits = +bitsSlider.value;
+    const hours = +uptimeSlider.value;
+    const { drift } = driftSeconds(hours, bits);
+    const shiftM = drift * SCUD_V;
+    const shiftPx = shiftM / M_PER_PX;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // stars
+    ctx.fillStyle = '#ffffff18';
+    for (let i = 0; i < 60; i++) {
+      const sx = (i * 137.5) % W, sy = (i * 89.3) % (AXIS_Y - 60);
+      ctx.fillRect(sx, sy, 2, 2);
+    }
+
+    // ground
+    ctx.fillStyle = '#10101c';
+    ctx.fillRect(0, AXIS_Y + 40, W, H);
+    ctx.strokeStyle = '#222236';
+    ctx.beginPath(); ctx.moveTo(0, AXIS_Y + 40); ctx.lineTo(W, AXIS_Y + 40); ctx.stroke();
+
+    // radar battery at right
+    const RX = W - 90;
+    ctx.fillStyle = '#3a4a3a';
+    ctx.fillRect(RX - 26, AXIS_Y + 10, 60, 30);
+    ctx.save();
+    ctx.translate(RX, AXIS_Y + 10);
+    ctx.rotate(-0.6);
+    ctx.fillStyle = '#5a7a5a';
+    ctx.fillRect(-6, -34, 16, 34);
+    ctx.restore();
+    ctx.fillStyle = '#777';
+    ctx.font = '20px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillText('PATRIOT', RX + 2, AXIS_Y + 66);
+
+    // scud flies steadily toward the radar, looping back to re-enter
+    const scudX = W * 0.30 + ((animT * 1.4) % (W * 0.42));
+    const scudY = AXIS_Y - 30;
+
+    // radar pulse arcs from the battery
+    const pr = (animT * 3) % (W * 0.9);
+    ctx.strokeStyle = 'rgba(123,216,255,' + Math.max(0, 0.35 - pr / (W * 2.2)) + ')';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(RX, AXIS_Y, pr, Math.PI * 0.75, Math.PI * 1.25);
+    ctx.stroke();
+
+    // range axis
+    ctx.strokeStyle = '#1e1e2e';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(20, AXIS_Y); ctx.lineTo(W - 20, AXIS_Y); ctx.stroke();
+
+    // ACTUAL scud marker on axis
+    ctx.strokeStyle = '#e8e8f0aa';
+    ctx.setLineDash([4, 5]);
+    ctx.beginPath(); ctx.moveTo(scudX, scudY + 16); ctx.lineTo(scudX, AXIS_Y + 26); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#e8e8f0';
+    ctx.font = '19px Courier New';
+    ctx.fillText('actual position', scudX, AXIS_Y + 92);
+
+    // RANGE GATE — clock ran slow → predicted elapsed time too small →
+    // gate lags behind the true position, away from the radar
+    const gateCX = scudX - shiftPx;
+    const gateHalfPx = GATE_HALF / M_PER_PX;
+    const contains = Math.abs(gateCX - scudX) <= gateHalfPx;
+    const gateColor = contains ? '126,233,163' : '255,107,107';
+
+    ctx.fillStyle = `rgba(${gateColor},0.10)`;
+    ctx.fillRect(gateCX - gateHalfPx, scudY - 58, gateHalfPx * 2, (AXIS_Y + 26) - (scudY - 58));
+    ctx.strokeStyle = `rgba(${gateColor},0.85)`;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(gateCX - gateHalfPx, scudY - 58, gateHalfPx * 2, (AXIS_Y + 26) - (scudY - 58));
+    ctx.fillStyle = `rgba(${gateColor},1)`;
+    ctx.fillText('range gate — "software looks here"', gateCX, scudY - 72);
+
+    // shift annotation
+    if (shiftM > 8) {
+      const ay = AXIS_Y + 26;
+      const dir = Math.sign(gateCX - scudX) || 1;
+      ctx.strokeStyle = '#ffd166';
+      ctx.beginPath(); ctx.moveTo(scudX, ay); ctx.lineTo(gateCX, ay); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(gateCX, ay); ctx.lineTo(gateCX - dir * 8, ay - 5); ctx.moveTo(gateCX, ay); ctx.lineTo(gateCX - dir * 8, ay + 5); ctx.stroke();
+      ctx.fillStyle = '#ffd166';
+      ctx.fillText(fmt(shiftM, 0) + ' m', (scudX + gateCX) / 2, ay + 28);
+    }
+
+    drawScud(scudX, scudY, 0); // nose pointing right, toward the battery
+    // verdict
+    if (contains) {
+      verdictEl.className = 'verdict ok';
+      verdictEl.textContent = 'TARGET IN GATE — TRACK CONFIRMED, INTERCEPT AUTHORIZED';
+    } else {
+      verdictEl.className = 'verdict fail';
+      verdictEl.textContent = 'NO TARGET IN GATE — CLASSIFIED AS FALSE ALARM, TRACK DROPPED';
+    }
+
+    requestAnimationFrame(drawScene);
+  }
+
+  // ---------- wiring ----------
+  function update() { renderExpansion(); renderDrift(); }
+  bitsSlider.addEventListener('input', update);
+  uptimeSlider.addEventListener('input', update);
+  update();
+  requestAnimationFrame(drawScene);
+})();
+</script>
+</body>
+</html>

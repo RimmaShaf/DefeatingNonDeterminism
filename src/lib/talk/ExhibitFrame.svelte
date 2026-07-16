@@ -44,13 +44,13 @@
 
 	.exf__chip {
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 11px;
+		font-size: clamp(13px, 1.2vw, 15px);
 		letter-spacing: 0.14em;
 		text-transform: uppercase;
-		color: #ffb454;
-		border: 1px solid #4a3a22;
+		color: #2a7de1;
+		border: 1px solid #b8cdec;
 		border-radius: 999px;
-		padding: 4px 10px;
+		padding: 5px 14px;
 		white-space: nowrap;
 	}
 
@@ -58,8 +58,8 @@
 		flex: 1;
 		text-align: left;
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 13px;
-		color: #8b95a7;
+		font-size: clamp(14px, 1.3vw, 17px);
+		color: #5f739c;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
@@ -67,30 +67,31 @@
 
 	.exf__open {
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 13px;
-		color: #8b95a7;
+		font-size: clamp(14px, 1.3vw, 17px);
+		color: #46618f;
 		text-decoration: none;
-		border: 1px solid #2a3242;
+		border: 1px solid #c9d9f0;
 		border-radius: 8px;
-		padding: 4px 10px;
+		padding: 5px 12px;
 	}
 
 	.exf__open:hover {
-		color: #e8edf7;
-		border-color: #34405a;
+		color: #2a7de1;
+		border-color: #2a7de1;
 	}
 
 	.exf__frame {
 		width: 100%;
-		height: min(62vh, 640px);
-		border: 1px solid #232b3b;
-		border-radius: 12px;
-		background: #0a0d13;
+		height: min(74vh, 880px);
+		border: 1px solid #d7e3f4;
+		border-radius: 14px;
+		background: #ffffff;
+		box-shadow: 0 10px 28px rgba(23, 58, 110, 0.06);
 	}
 
 	.exf__note {
-		margin: 10px 0 0;
-		font-size: 13px;
-		color: #5b6678;
+		margin: 12px 0 0;
+		font-size: clamp(14px, 1.4vw, 18px);
+		color: #5f739c;
 	}
 </style>

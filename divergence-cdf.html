@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Where Do 100 Runs First Diverge?</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 32px 0;
+  background: #080810;
+  color: #e0e0e0;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 300;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #ffffff;
+  margin: 0 0 16px 0;
+}
+
+h2 {
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #ffffff;
+  border-bottom: 1px solid #222222;
+  padding-bottom: 8px;
+  margin: 0 0 16px 0;
+}
+
+.section {
+  width: min(96vw, 920px);
+  background: #0d0d18;
+  border: 1px solid #1c1c2a;
+  border-radius: 10px;
+  padding: 26px 28px;
+  margin-bottom: 28px;
+}
+
+.caveat-box {
+  border: 1px solid #c2701c;
+  background: rgba(194, 112, 28, 0.08);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  color: #f3c98a;
+  font-size: 12px;
+}
+
+.control-badge {
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #1c1c2a;
+  border: 1px solid #2c2c40;
+  color: #c0c0d0;
+}
+
+.cell-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.cell {
+  border: 1px solid #1c1c2a;
+  border-radius: 8px;
+  padding: 12px;
+  background: #0a0a14;
+}
+
+.cell-title {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #b0b0c0;
+  margin-bottom: 6px;
+}
+
+.legend {
+  font-size: 11px;
+  color: #a0a0b0;
+}
+
+svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+a { color: #88aaff; }
+
+  body {
+    background: #080810;
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    padding: 32px 20px 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 36px;
+    max-width: 760px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 300;
+    letter-spacing: 0.18em;
+    color: #fff;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .subtitle {
+    font-size: 0.78rem;
+    color: #888;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: 0.85rem;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    color: #fff;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #222;
+  }
+
+  h3 {
+    font-size: 0.7rem;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    color: #ccc;
+  }
+
+  .section {
+    width: min(96vw, 920px);
+    background: #0d0d18;
+    border: 1px solid #1c1c2a;
+    border-radius: 10px;
+    padding: 26px 28px;
+    margin-bottom: 28px;
+  }
+
+  /* ====== Caveat box ====== */
+
+  .caveat-box .caveat-line {
+    font-size: 0.78rem;
+    color: #aaa;
+    line-height: 1.7;
+    margin-bottom: 14px;
+    padding-left: 14px;
+    border-left: 2px solid #ff9b6b;
+  }
+  .caveat-box .caveat-line b { color: #ff9b6b; }
+  .caveat-box .caveat-line.dim { border-left-color: #444; color: #888; }
+
+  table.seed-matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.74rem;
+    margin: 10px 0 18px;
+  }
+  table.seed-matrix th, table.seed-matrix td {
+    text-align: left;
+    padding: 7px 10px;
+    border-bottom: 1px dashed #1f1f2c;
+  }
+  table.seed-matrix th {
+    color: #777;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.65rem;
+    font-weight: 400;
+    border-bottom: 1px solid #2a2a3a;
+  }
+  table.seed-matrix td.yes { color: #9bffb1; }
+  table.seed-matrix td.no  { color: #ff8a8a; }
+  table.seed-matrix td.note { color: #888; }
+
+  /* ====== Provider sections / small multiples ====== */
+
+  .provider-meta {
+    font-size: 0.74rem;
+    color: #888;
+    margin-bottom: 18px;
+    line-height: 1.6;
+  }
+  .provider-meta b { color: #9bd8ff; }
+
+  .tile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 16px;
+  }
+  @media (max-width: 640px) {
+    .tile-grid { grid-template-columns: 1fr; }
+  }
+
+  .tile {
+    background: #11111d;
+    border: 1px solid #22222e;
+    border-radius: 8px;
+    padding: 14px 16px 16px;
+    position: relative;
+  }
+
+  .tile-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .tile-head .ttl {
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    color: #ccc;
+  }
+  .tile-head .ttl .pid { color: #9bd8ff; }
+
+  .control-badge {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+    color: #ffb3ff;
+    background: #1a0d1a;
+    border: 1px solid #3a1f3a;
+    border-radius: 3px;
+    padding: 2px 6px;
+    text-transform: uppercase;
+  }
+
+  .warn-ribbon {
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    color: #ff9b6b;
+    background: #1a120d;
+    border: 1px solid #3a2a1c;
+    border-radius: 3px;
+    padding: 3px 8px;
+    margin: 6px 0 8px;
+    display: inline-block;
+  }
+
+  .tile svg { display: block; margin: 6px 0 4px; }
+
+  .axis-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.04em;
+    color: #666;
+    text-align: center;
+    margin-top: 2px;
+  }
+
+  .median-big {
+    font-size: 0.95rem;
+    color: #9bd8ff;
+    margin-top: 8px;
+    text-align: center;
+  }
+  .median-big .unit {
+    font-size: 0.62rem;
+    color: #777;
+    letter-spacing: 0.04em;
+  }
+
+  .tile-legend {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    font-size: 0.58rem;
+    letter-spacing: 0.04em;
+    color: #888;
+    margin-top: 6px;
+    text-transform: uppercase;
+  }
+  .tile-legend span::before {
+    content: "";
+    display: inline-block;
+    width: 9px;
+    height: 2px;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  .tile-legend .l-byte::before { background: #9bd8ff; }
+  .tile-legend .l-cp::before   { background: #ffb3ff; }
+
+  .no-data {
+    text-align: center;
+    color: #444;
+    font-size: 0.72rem;
+    padding: 38px 8px;
+    letter-spacing: 0.06em;
+    font-style: italic;
+  }
+
+  .footer-note {
+    font-size: 0.68rem;
+    color: #555;
+    text-align: center;
+    margin-top: 4px;
+    line-height: 1.7;
+    max-width: 760px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Where Do 100 Runs First Diverge?</h1>
+  <p class="subtitle">Same prompt, 100 runs, per-token comparison.</p>
+</header>
+
+<section class="section caveat-box">
+  <h2>Read this before the charts</h2>
+  <div class="caveat-line">
+    <b>Unit asymmetry.</b> Gemini exposes no token IDs, so its divergence index is measured in
+    <b>UTF-8 bytes</b> and <b>Unicode codepoints</b> — both are shown, overlaid. Ollama (local) and Groq
+    report divergence in <b>tokens</b>, using each model's own tokenizer. A "divergence at index 12" means
+    something different across rows below — do not compare magnitudes across providers.
+  </div>
+  <table class="seed-matrix">
+    <tr><th>Provider</th><th>Seed accepted</th><th>Notes</th></tr>
+    <tr><td>Ollama</td><td class="yes">yes</td><td class="note"><code>options.seed = run_idx</code>; T=0 is a harness control, expected near-degenerate.</td></tr>
+    <tr><td>Groq</td><td class="yes">yes</td><td class="note"><code>seed = run_idx</code>; vendor does not guarantee determinism even with a fixed seed.</td></tr>
+    <tr><td>Gemini</td><td class="no">no</td><td class="note">seed left unset (documented); <code>seed_scheme="unset"</code> baked into the config hash.</td></tr>
+  </table>
+  <div class="caveat-line dim">
+    n = 4 prompts is exploratory, not representative. Treat every chart below as a single illustrative
+    sample of a much larger, unobserved space of prompts — not a benchmark result.
+  </div>
+</section>
+
+<!-- PROVIDER_SECTIONS_PLACEHOLDER -->
+<section class="section" id="provider-ollama">
+  <h2>Ollama — local, tokens</h2>
+  <div class="provider-meta">Unit: <b>token index</b>. Tokenized via each model's matching HF tokenizer; model digest captured from <code>/api/show</code>.</div>
+  <div class="tile-grid" id="grid-ollama"></div>
+</section>
+
+<section class="section" id="provider-gemini">
+  <h2>Gemini — hosted, byte + codepoint</h2>
+  <div class="provider-meta">Unit: <b>UTF-8 byte index</b> and <b>Unicode codepoint index</b>, overlaid per tile. No token IDs are exposed by the API.</div>
+  <div class="tile-grid" id="grid-gemini"></div>
+</section>
+
+<section class="section" id="provider-groq">
+  <h2>Groq — hosted, tokens</h2>
+  <div class="provider-meta">Unit: <b>token index</b>. Token strings taken from <code>logprobs</code> where available, else re-tokenized with the Llama-3.3 vocabulary.</div>
+  <div class="tile-grid" id="grid-groq"></div>
+</section>
+
+<p class="footer-note">
+  Each tile: histogram of pairwise first-divergence indices (bars) with the empirical CDF (line) overlaid.
+  Median is the 50th percentile of C(n_ok, 2) pairwise comparisons. T=0 tiles are controls — under a fixed
+  seed they should collapse near the right edge (no early divergence). Tiles with n_ok &lt; 50 carry a
+  low-sample warning; their curves are statistically noisy.
+</p>
+
+<script>
+window.DIVERGENCE_DATA = {"cells": [{"model": "gemma4_latest", "provider": "ollama", "prompt_id": "math_det", "prompt_text": "", "category": "", "temperature": 0.0, "unit": "token", "n_ok": 5, "n_excluded": 0, "status_counts": {"ok": 5}, "mean_len": 3.0, "cdf_pairwise": [{"x": 3, "p": 0.1}, {"x": 3, "p": 0.2}, {"x": 3, "p": 0.3}, {"x": 3, "p": 0.4}, {"x": 3, "p": 0.5}, {"x": 3, "p": 0.6}, {"x": 3, "p": 0.7}, {"x": 3, "p": 0.8}, {"x": 3, "p": 0.9}, {"x": 3, "p": 1.0}], "lcp_depths": [3, 3, 3, 3, 3], "tree": {"count": 5, "children": {"'51…+1'": {"token": "51…+1", "count": 5, "children": {}}}}, "cfg8": "c0d5e4d2"}, {"model": "gemma4_latest", "provider": "ollama", "prompt_id": "math_det", "prompt_text": "", "category": "", "temperature": 0.7, "unit": "token", "n_ok": 4, "n_excluded": 1, "status_counts": {"ok": 4, "empty": 1}, "mean_len": 3.0, "cdf_pairwise": [{"x": 3, "p": 0.16666666666666666}, {"x": 3, "p": 0.3333333333333333}, {"x": 3, "p": 0.5}, {"x": 3, "p": 0.6666666666666666}, {"x": 3, "p": 0.8333333333333334}, {"x": 3, "p": 1.0}], "lcp_depths": [3, 3, 3, 3], "tree": {"count": 4, "children": {"'51…+1'": {"token": "51…+1", "count": 4, "children": {}}}}, "cfg8": "5cb357ae"}], "generated_at": 1782289725.117985, "harness_version": "0.1.0"};
+const DATA = typeof window.DIVERGENCE_DATA !== 'undefined' ? window.DIVERGENCE_DATA : null;
+
+const NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs) {
+  const el = document.createElementNS(NS, tag);
+  for (const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+
+const UNIT_LABEL = { token: 'token index', byte: 'byte index', codepoint: 'codepoint index' };
+
+function median(cdf) {
+  if (!cdf || !cdf.length) return null;
+  for (const pt of cdf) if (pt.p >= 0.5) return pt.k;
+  return cdf[cdf.length - 1].k;
+}
+
+function maxK(cdf) {
+  if (!cdf || !cdf.length) return 1;
+  return Math.max(1, cdf[cdf.length - 1].k);
+}
+
+// Build a histogram (counts per bin) from a CDF's implied step distribution.
+// cdf is [{k, p}] cumulative; we diff successive p to get bin mass, then bucket
+// across a fixed number of visual bins spanning [0, maxK].
+function histFromCdf(cdf, bins) {
+  const mk = maxK(cdf);
+  const counts = new Array(bins).fill(0);
+  let prevP = 0;
+  let prevK = 0;
+  for (const pt of cdf) {
+    const mass = Math.max(0, pt.p - prevP);
+    const mid = (prevK + pt.k) / 2;
+    let idx = Math.floor((mid / Math.max(mk, 1)) * bins);
+    if (idx < 0) idx = 0;
+    if (idx >= bins) idx = bins - 1;
+    counts[idx] += mass;
+    prevP = pt.p;
+    prevK = pt.k;
+  }
+  return counts;
+}
+
+function plotCdf(svg, cdf, color, w, h, padL, padB) {
+  if (!cdf || !cdf.length) return;
+  const mk = maxK(cdf);
+  const plotW = w - padL - 4;
+  const plotH = h - padB - 4;
+  let d = '';
+  cdf.forEach((pt, i) => {
+    const x = padL + (pt.k / mk) * plotW;
+    const y = 4 + (1 - pt.p) * plotH;
+    d += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1);
+  });
+  svg.appendChild(svgEl('path', { d, fill: 'none', stroke: color, 'stroke-width': '1.6', 'stroke-linejoin': 'round' }));
+}
+
+function plotHist(svg, cdf, color, w, h, padL, padB, bins) {
+  if (!cdf || !cdf.length) return;
+  const counts = histFromCdf(cdf, bins);
+  const maxC = Math.max(...counts, 0.0001);
+  const plotW = w - padL - 4;
+  const plotH = h - padB - 4;
+  const barW = plotW / bins;
+  counts.forEach((c, i) => {
+    const bh = (c / maxC) * plotH;
+    const x = padL + i * barW;
+    const y = 4 + plotH - bh;
+    svg.appendChild(svgEl('rect', {
+      x: x.toFixed(1), y: y.toFixed(1),
+      width: Math.max(barW - 1, 0.5).toFixed(1), height: Math.max(bh, 0).toFixed(1),
+      fill: color, opacity: '0.18'
+    }));
+  });
+}
+
+function axesAndFrame(svg, w, h, padL, padB) {
+  svg.appendChild(svgEl('line', { x1: padL, y1: 4, x2: padL, y2: h - padB, stroke: '#2a2a3a', 'stroke-width': '1' }));
+  svg.appendChild(svgEl('line', { x1: padL, y1: h - padB, x2: w - 4, y2: h - padB, stroke: '#2a2a3a', 'stroke-width': '1' }));
+  // p=0.5 guide
+  const plotH = h - padB - 4;
+  const yMid = 4 + 0.5 * plotH;
+  svg.appendChild(svgEl('line', { x1: padL, y1: yMid.toFixed(1), x2: w - 4, y2: yMid.toFixed(1), stroke: '#1c1c2a', 'stroke-width': '1', 'stroke-dasharray': '2,3' }));
+}
+
+function buildTileSvg(cell) {
+  const w = 280, h = 160, padL = 24, padB = 16;
+  const svg = svgEl('svg', { width: w, height: h, viewBox: `0 0 ${w} ${h}` });
+  svg.style.background = '#07070f';
+  svg.style.borderRadius = '4px';
+  axesAndFrame(svg, w, h, padL, padB);
+
+  if (cell.provider === 'gemini' && cell.cdf_byte && cell.cdf_codepoint) {
+    plotHist(svg, cell.cdf_codepoint, '#ffb3ff', w, h, padL, padB, 32);
+    plotCdf(svg, cell.cdf_byte, '#9bd8ff', w, h, padL, padB);
+    plotCdf(svg, cell.cdf_codepoint, '#ffb3ff', w, h, padL, padB);
+  } else {
+    plotHist(svg, cell.cdf_pairwise, '#9bd8ff', w, h, padL, padB, 32);
+    plotCdf(svg, cell.cdf_pairwise, '#9bd8ff', w, h, padL, padB);
+  }
+  return svg;
+}
+
+function buildTile(cell) {
+  const tile = document.createElement('div');
+  tile.className = 'tile';
+
+  if (cell.temperature === 0 || cell.temperature === 0.0) {
+    const badge = document.createElement('div');
+    badge.className = 'control-badge';
+    badge.textContent = 'control';
+    tile.appendChild(badge);
+  }
+
+  const head = document.createElement('div');
+  head.className = 'tile-head';
+  const ttl = document.createElement('div');
+  ttl.className = 'ttl';
+  ttl.innerHTML = `${cell.model} <span class="pid">· ${cell.prompt_id}</span> · T=${cell.temperature}`;
+  head.appendChild(ttl);
+  tile.appendChild(head);
+
+  if (cell.n_ok < 50) {
+    const ribbon = document.createElement('div');
+    ribbon.className = 'warn-ribbon';
+    ribbon.textContent = `LOW SAMPLE — n_ok=${cell.n_ok}`;
+    tile.appendChild(ribbon);
+  }
+
+  if (!cell.n_ok || cell.n_ok === 0 || (!cell.cdf_pairwise && !cell.cdf_byte)) {
+    const nd = document.createElement('div');
+    nd.className = 'no-data';
+    nd.textContent = 'no data yet';
+    tile.appendChild(nd);
+    return tile;
+  }
+
+  tile.appendChild(buildTileSvg(cell));
+
+  const axis = document.createElement('div');
+  axis.className = 'axis-label';
+  if (cell.provider === 'gemini') {
+    axis.textContent = 'byte index / codepoint index →';
+  } else {
+    axis.textContent = (UNIT_LABEL[cell.unit] || 'index') + ' →';
+  }
+  tile.appendChild(axis);
+
+  if (cell.provider === 'gemini' && cell.cdf_byte && cell.cdf_codepoint) {
+    const legend = document.createElement('div');
+    legend.className = 'tile-legend';
+    legend.innerHTML = '<span class="l-byte">byte</span><span class="l-cp">codepoint</span>';
+    tile.appendChild(legend);
+    const m = document.createElement('div');
+    m.className = 'median-big';
+    m.innerHTML = `median = ${median(cell.cdf_codepoint)} <span class="unit">codepoints</span>`;
+    tile.appendChild(m);
+  } else {
+    const m = document.createElement('div');
+    m.className = 'median-big';
+    m.innerHTML = `median = ${median(cell.cdf_pairwise)} <span class="unit">${cell.unit || 'tokens'}</span>`;
+    tile.appendChild(m);
+  }
+
+  return tile;
+}
+
+function render() {
+  const grids = {
+    ollama: document.getElementById('grid-ollama'),
+    gemini: document.getElementById('grid-gemini'),
+    groq: document.getElementById('grid-groq'),
+  };
+
+  if (!DATA || !DATA.cells || !DATA.cells.length) {
+    for (const k in grids) {
+      const nd = document.createElement('div');
+      nd.className = 'no-data';
+      nd.style.gridColumn = '1 / -1';
+      nd.textContent = 'Open after running python scripts/divergence/analyze.py --emit-html ...';
+      grids[k].appendChild(nd);
+    }
+    return;
+  }
+
+  const byProvider = { ollama: [], gemini: [], groq: [] };
+  DATA.cells.forEach(c => {
+    if (byProvider[c.provider]) byProvider[c.provider].push(c);
+  });
+
+  for (const provider in byProvider) {
+    const cells = byProvider[provider];
+    const grid = grids[provider];
+    if (!cells.length) {
+      const nd = document.createElement('div');
+      nd.className = 'no-data';
+      nd.style.gridColumn = '1 / -1';
+      nd.textContent = 'no data yet';
+      grid.appendChild(nd);
+      continue;
+    }
+    // T=0 controls first, then T>=0.7 signal cells.
+    cells.sort((a, b) => a.temperature - b.temperature || a.prompt_id.localeCompare(b.prompt_id));
+    cells.forEach(c => grid.appendChild(buildTile(c)));
+  }
+}
+
+render();
+</script>
+
+</body>
+</html>

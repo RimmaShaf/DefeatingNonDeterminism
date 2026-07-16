@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { base } from '$app/paths';
 
 	import ColdOpenDivergence from '$lib/talk/ColdOpenDivergence.svelte';
 	import TrainingVsInference from '$lib/talk/TrainingVsInference.svelte';
@@ -23,7 +24,10 @@
 
 	// Beats are numbered by DOM order — add/move/remove <section class="beat">
 	// freely, just keep TOTAL_BEATS equal to the number of sections.
-	const TOTAL_BEATS = 21;
+	const TOTAL_BEATS = 20;
+
+	// Decorative line-art pattern, used sparingly (cold open + epilogue).
+	const patternStyle = `--pattern: url('${base}/talk-assets/pattern-blue.jpg')`;
 	initTalkMode(true, TOTAL_BEATS);
 
 	let deckEl: HTMLElement;
@@ -77,10 +81,30 @@
 <svelte:window onkeydown={onKeydown} />
 
 <div class="deck" bind:this={deckEl}>
+	<!-- ═══════════ TITLE ═══════════ -->
+
+	<!-- OPENING SLIDE -->
+	<section class="beat beat--title">
+		<div class="beat__title-copy">
+			<h1 class="beat__title-statement">
+				Why Exactly are LLMs Non-Deterministic? <span class="hl"><br>Can We Tame This Probabilistic Beast?</span>
+			</h1>
+			<div class="beat__title-byline">
+				<p class="beat__title-name">Rimma Shafikova</p>
+				<p class="beat__title-role">Senior Data Scientist @ VGW</p>
+			</div>
+		</div>
+		<img
+			class="beat__title-art"
+			src="{base}/talk-assets/hero-image.jpg"
+			alt=""
+		/>
+	</section>
+
 	<!-- ═══════════ ACT I · THE ANOMALY ═══════════ -->
 
 	<!-- COLD OPEN -->
-	<section class="beat">
+	<section class="beat beat--pattern" style={patternStyle}>
 		<p class="beat__kicker">Act I · The anomaly</p>
 		<h1 class="beat__statement beat__statement--xl">
 			Nobody touched <span class="hl">anything</span>.
@@ -256,7 +280,7 @@
 			Low batch → Split-K: many cores share one accumulator, order varies.<br />
 			Someone else's request changes <span class="hl">your</span> answer.
 		</p>
-		<div class="beat__demo beat__demo--wide">
+		<div class="beat__demo beat__demo--wide beat__demo--duo">
 			<SimulationControlPanel />
 			<KernelParallelismSimulator />
 		</div>
@@ -316,7 +340,7 @@
 			Who pays that price? Debugging, audits — and truly <span class="hl">on-policy RL</span>,
 			where sampler and trainer finally agree, KL = 0.
 		</p>
-		<div class="beat__demo beat__demo--wide">
+		<div class="beat__demo beat__demo--wide beat__demo--duo">
 			<ProofBlock />
 			<BatchInvarianceCostChart />
 		</div>
@@ -370,7 +394,7 @@
 	</section> -->
 
 	<!-- EPILOGUE — same experiment, different provider -->
-	<section class="beat">
+	<section class="beat beat--pattern" style={patternStyle}>
 		<p class="beat__kicker">Epilogue · Same experiment, different provider</p>
 		<h1 class="beat__statement">And on <span class="hl">Groq</span>?</h1>
 		<p class="beat__sub">
@@ -380,6 +404,15 @@
 		<div class="beat__demo beat__demo--wide">
 			<PoemVarianceGroqDemo />
 		</div>
+		<p class="beat__sub">
+			100 runs, seed pinned — still <span class="hl">three different poems</span>. Identical
+			through line 3, splitting at <span class="hl">one near-tied token</span> in line 4. Dense
+			<span class="mono">llama-3.3-70b</span>, same test: one word flips
+			(<span class="mono">noon → dawn</span>) — but never within a burst. 46 simultaneous calls:
+			identical. Spread across minutes: drift. The divergence follows the
+			<span class="hl">batching windows</span>, not the model.<br />
+			<span class="hl">Deterministic hardware ≠ deterministic API.</span>
+		</p>
 	</section>
 </div>
 
@@ -387,20 +420,30 @@
 
 <style>
 	:global(body:has(.deck)) {
-		background: #0a0d13;
+		background: #ffffff;
 		overflow: hidden;
 	}
 
 	.deck {
-		/* Deck-wide demo sizing — change these two values to resize every demo. */
-		--demo-width: min(1200px, 94vw);
-		--demo-width-wide: min(1500px, 96vw);
+		/* Deck-wide demo sizing — change these values to resize every demo.
+		   --demo-zoom scales the article-style modules up for projection. */
+		--demo-width: min(1360px, 96vw);
+		--demo-width-wide: min(1660px, 98vw);
+		--demo-zoom: 1.3;
+		/* Projector-friendly light palette (white bg, navy ink, blue/red accents). */
+		--ink: #1d2c4e;
+		--heading: #14356e;
+		--accent: #2a7de1;
+		--red: #d6453d;
+		--muted: #5f739c;
+		--line: #d7e3f4;
+		--panel: #f6f9fe;
 		position: fixed;
 		inset: 0;
 		overflow-y: auto;
 		scroll-snap-type: y mandatory;
-		background: #0a0d13;
-		color: #e8edf7;
+		background: #ffffff;
+		color: var(--ink);
 	}
 
 	.beat {
@@ -411,51 +454,63 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 28px;
-		padding: 48px clamp(24px, 6vw, 96px);
+		gap: 32px;
+		padding: 48px clamp(20px, 4vw, 72px);
 		box-sizing: border-box;
 		text-align: center;
+	}
+
+	/* Decorative line-art pattern, kept faint under a white wash. */
+	.beat--pattern {
+		background-image:
+			linear-gradient(rgba(255, 255, 255, 0.87), rgba(255, 255, 255, 0.87)),
+			var(--pattern);
+		background-size:
+			auto,
+			min(880px, 100vw) auto;
+		background-repeat: repeat;
 	}
 
 	.beat__kicker {
 		margin: 0;
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: clamp(13px, 1.3vw, 17px);
-		letter-spacing: 0.28em;
+		font-size: clamp(15px, 1.5vw, 21px);
+		letter-spacing: 0.26em;
 		text-transform: uppercase;
-		color: #5b6678;
+		color: var(--accent);
 	}
 
 	.beat__statement {
 		margin: 0;
-		font-size: clamp(34px, 5.2vw, 76px);
-		line-height: 1.12;
+		font-size: clamp(44px, 6vw, 92px);
+		line-height: 1.1;
 		font-weight: 800;
 		letter-spacing: -0.015em;
 		max-width: 22ch;
+		color: var(--heading);
 	}
 
 	.beat__statement--xl {
-		font-size: clamp(40px, 6.4vw, 96px);
+		font-size: clamp(52px, 7.4vw, 112px);
 	}
 
 	.beat__sub {
 		margin: 0;
-		font-size: clamp(17px, 1.9vw, 26px);
+		font-size: clamp(21px, 2.2vw, 32px);
 		line-height: 1.5;
-		color: #aab4c8;
-		max-width: 56ch;
+		color: #3c4f78;
+		max-width: 54ch;
 	}
 
 	.hl {
-		color: #ffb454;
+		color: var(--accent);
 	}
 
 	.strike {
 		text-decoration: line-through;
-		text-decoration-color: #ff6b66;
+		text-decoration-color: var(--red);
 		text-decoration-thickness: 0.08em;
-		color: #8b95a7;
+		color: #7d8db0;
 	}
 
 	.mono {
@@ -465,12 +520,24 @@
 	.beat__demo {
 		width: var(--demo-width);
 		max-width: 100%;
-		background: #f4f6fa;
-		border-radius: 16px;
-		padding: 20px 24px;
-		box-shadow: 0 0 0 1px #232b3b;
+		background: #ffffff;
+		border-radius: 18px;
+		padding: 24px 28px;
+		box-shadow:
+			0 0 0 1px var(--line),
+			0 18px 44px rgba(23, 58, 110, 0.08);
 		text-align: left;
-		color: #1b2430;
+		color: var(--ink);
+	}
+
+	/* Article-style modules keep their own compact px sizing — scale the whole
+	   card up for the projector. Width divides by the zoom so the visual
+	   footprint still equals --demo-width. */
+	.beat__demo:not(.beat__demo--bare) {
+		zoom: var(--demo-zoom);
+		width: calc(var(--demo-width) / var(--demo-zoom));
+		border-radius: 14px;
+		padding: 20px 24px;
 	}
 
 	.beat__demo--bare {
@@ -485,13 +552,93 @@
 		width: var(--demo-width-wide);
 	}
 
+	.beat__demo--wide:not(.beat__demo--bare) {
+		width: calc(var(--demo-width-wide) / var(--demo-zoom));
+	}
+
+	/* Two modules side by side so the beat fits one screen. */
+	.beat__demo--duo {
+		display: grid;
+		grid-template-columns: minmax(300px, 5fr) 7fr;
+		gap: 24px;
+		align-items: start;
+	}
+
+	.beat__demo--duo > :global(*) {
+		margin: 0;
+	}
+
+	.beat--title {
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		gap: clamp(24px, 4vw, 64px);
+		text-align: left;
+		padding: 32px clamp(20px, 3vw, 56px);
+	}
+
+	.beat__title-copy {
+		flex: 0 0 auto;
+		width: min(420px, 34vw);
+	}
+
+	.beat__title-art {
+		flex: 1 1 auto;
+		width: min(1050px, 46vw);
+		max-width: 46vw;
+		height: auto;
+	}
+
+	.beat__title-statement {
+		margin: 0;
+		font-size: clamp(24px, 2.4vw, 34px);
+		line-height: 1.25;
+		font-weight: 800;
+		letter-spacing: -0.01em;
+		max-width: 20ch;
+		color: var(--heading);
+	}
+
+	.beat__title-byline {
+		margin-top: 20px;
+	}
+
+	.beat__title-name {
+		margin: 0;
+		font-size: clamp(19px, 1.9vw, 26px);
+		font-weight: 700;
+		color: var(--ink);
+	}
+
+	.beat__title-role {
+		margin: 4px 0 0;
+		font-size: clamp(15px, 1.4vw, 19px);
+		color: var(--muted);
+	}
+
+	@media (max-width: 860px) {
+		.beat--title {
+			flex-direction: column;
+			text-align: center;
+		}
+
+		.beat__title-copy {
+			width: 100%;
+		}
+
+		.beat__title-art {
+			width: min(560px, 65vw);
+			max-width: 100%;
+		}
+	}
+
 	.deck-counter {
 		position: fixed;
 		right: 20px;
 		bottom: 18px;
 		z-index: 10;
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 15px;
-		color: #5b6678;
+		font-size: 17px;
+		color: #8296bb;
 	}
 </style>

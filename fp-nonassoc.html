@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Floating Point Non-Associativity</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #080810;
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    padding: 32px 20px 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 36px;
+    max-width: 760px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 300;
+    letter-spacing: 0.18em;
+    color: #fff;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .subtitle {
+    font-size: 0.78rem;
+    color: #888;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: 0.85rem;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    color: #fff;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #222;
+  }
+
+  .section {
+    width: min(96vw, 900px);
+    background: #0d0d18;
+    border: 1px solid #1c1c2a;
+    border-radius: 10px;
+    padding: 26px 28px;
+    margin-bottom: 28px;
+  }
+
+  .value-formula {
+    background: linear-gradient(135deg, #11111d 0%, #161628 100%);
+    border: 1px solid #2a2a3a;
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-bottom: 22px;
+    text-align: center;
+    font-size: 1.25rem;
+    color: #fff;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+  }
+  .value-formula sup { font-size: 0.7em; }
+  .value-formula code {
+    background: #07070f;
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: #9bd8ff;
+    font-size: 0.85em;
+  }
+  .value-formula b { color: #fff; }
+  .value-formula em { color: #ffb3ff; font-style: normal; }
+  .formula-note {
+    font-size: 0.74rem;
+    color: #999;
+    letter-spacing: 0.02em;
+    margin-top: 12px;
+    line-height: 1.6;
+    text-align: left;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* ====== FP16 inspector ====== */
+
+  .fp-card {
+    background: #11111d;
+    border-radius: 8px;
+    padding: 18px 18px 20px;
+    margin-bottom: 14px;
+  }
+
+  .fp-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .fp-name {
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #777;
+  }
+
+  .fp-decimal {
+    font-size: 1.1rem;
+    color: #fff;
+    font-weight: 400;
+  }
+
+  .fp-decimal .err {
+    color: #f88;
+    font-size: 0.75rem;
+    margin-left: 8px;
+  }
+
+  .bits {
+    display: flex;
+    gap: 2px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .bit {
+    width: 22px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    border-radius: 3px;
+    font-weight: 600;
+    user-select: none;
+  }
+
+  .bit.sign     { background: #3a1f3a; color: #ff9be3; }
+  .bit.exp      { background: #1f2f3a; color: #9bd8ff; }
+  .bit.mant     { background: #1f3a25; color: #9bffb1; }
+  .bit.zero     { opacity: 0.32; }
+
+  .legend {
+    display: flex;
+    gap: 18px;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    color: #666;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .legend span::before {
+    content: "";
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .legend .l-sign::before { background: #3a1f3a; border: 1px solid #ff9be3; }
+  .legend .l-exp::before  { background: #1f2f3a; border: 1px solid #9bd8ff; }
+  .legend .l-mant::before { background: #1f3a25; border: 1px solid #9bffb1; }
+
+  .formula {
+    font-size: 0.78rem;
+    color: #aaa;
+    line-height: 1.65;
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: #07070f;
+    border-left: 2px solid #333;
+    border-radius: 0 4px 4px 0;
+  }
+  .formula b { color: #ff9be3; }
+  .formula i { color: #9bd8ff; font-style: normal; }
+  .formula u { color: #9bffb1; text-decoration: none; }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 6px 0 18px;
+    flex-wrap: wrap;
+  }
+  .input-row label {
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #888;
+  }
+  input[type="number"], input[type="text"] {
+    background: #07070f;
+    border: 1px solid #2a2a3a;
+    color: #fff;
+    padding: 8px 12px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    border-radius: 5px;
+    width: 180px;
+  }
+  input[type="number"]:focus, input[type="text"]:focus {
+    outline: none;
+    border-color: #9bd8ff;
+  }
+
+  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    background: #1a1a2a;
+    border: 1px solid #2a2a3a;
+    color: #ccc;
+    padding: 6px 12px;
+    font-family: inherit;
+    font-size: 0.75rem;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .chip:hover { border-color: #9bd8ff; color: #fff; }
+
+  /* ====== Non-associativity demo ====== */
+
+  .demo-controls {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    font-size: 0.85rem;
+  }
+  .demo-controls .eq {
+    color: #888;
+    font-size: 0.95rem;
+  }
+  .big-num {
+    background: #07070f;
+    border: 1px solid #2a2a3a;
+    color: #9bd8ff;
+    padding: 8px 14px;
+    border-radius: 5px;
+    font-size: 1rem;
+    min-width: 100px;
+    text-align: center;
+  }
+
+  .duel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 640px) {
+    .duel { grid-template-columns: 1fr; }
+  }
+
+  .lane {
+    background: #11111d;
+    border-radius: 8px;
+    padding: 18px;
+    border: 1px solid transparent;
+  }
+  .lane.correct { border-color: #2d5a3a; }
+  .lane.wrong   { border-color: #5a2d2d; }
+
+  .lane-title {
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #aaa;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .lane.correct .lane-title { color: #7be39c; }
+  .lane.wrong   .lane-title { color: #ff8a8a; }
+
+  .step {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 0.85rem;
+    border-bottom: 1px dashed #1f1f2c;
+  }
+  .step:last-child { border-bottom: none; }
+  .step .lhs { color: #888; }
+  .step .rhs { color: #fff; font-weight: 600; }
+
+  .result {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #222;
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 600;
+  }
+  .lane.correct .result { color: #7be39c; }
+  .lane.wrong   .result { color: #ff8a8a; }
+
+  .verdict {
+    text-align: center;
+    margin-top: 18px;
+    padding: 12px;
+    background: #1a0d1a;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #ffb3ff;
+    line-height: 1.6;
+  }
+  .verdict b { color: #fff; }
+
+  .footnote {
+    font-size: 0.7rem;
+    color: #555;
+    line-height: 1.6;
+    margin-top: 16px;
+    text-align: center;
+  }
+
+  /* ====== Register-level adder ====== */
+
+  .reg-controls {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+  }
+  .reg-controls .chip-row { margin-left: auto; }
+
+  .reg-step-btns {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0 22px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .reg-step-btns button {
+    background: #1a1a2a;
+    border: 1px solid #2a2a3a;
+    color: #ccc;
+    padding: 8px 16px;
+    font-family: inherit;
+    font-size: 0.75rem;
+    border-radius: 5px;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.15s ease;
+  }
+  .reg-step-btns button:hover:not(:disabled) {
+    border-color: #9bd8ff;
+    color: #fff;
+  }
+  .reg-step-btns button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .reg-step-btns button.primary {
+    background: #1f2f3a;
+    border-color: #9bd8ff;
+    color: #fff;
+  }
+
+  .reg-stage {
+    background: #07070f;
+    border: 1px solid #1c1c2a;
+    border-radius: 8px;
+    padding: 18px;
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .stage-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 10px;
+  }
+  .stage-label b { color: #9bd8ff; }
+
+  .reg-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+    font-size: 0.85rem;
+  }
+  .reg-row .op-tag {
+    width: 60px;
+    color: #777;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .reg-row .reg-value {
+    color: #fff;
+    margin-left: auto;
+    font-size: 0.8rem;
+    min-width: 90px;
+    text-align: right;
+  }
+
+  .mantissa-track {
+    display: flex;
+    gap: 1px;
+    align-items: center;
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+  .mbit {
+    width: 18px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    border-radius: 2px;
+    font-weight: 600;
+    flex-shrink: 0;
+    transition: all 0.4s ease;
+  }
+  .mbit.implicit { background: #4a2a4a; color: #ff9be3; }
+  .mbit.normal   { background: #1f3a25; color: #9bffb1; }
+  .mbit.normal.zero { background: #1a2a1f; color: #4a6a52; }
+  .mbit.guard    { background: #2a2a3a; color: #888; }
+  .mbit.lost     {
+    background: #3a1f1f;
+    color: #ff8a8a;
+    animation: lost-pulse 0.8s ease;
+  }
+  .mbit.fading {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  .mbit.dot      { background: transparent; color: #666; width: 8px; }
+
+  @keyframes lost-pulse {
+    0%   { background: #ff4444; transform: scale(1.2); }
+    100% { background: #3a1f1f; transform: scale(1); }
+  }
+
+  .exp-tag {
+    font-size: 0.7rem;
+    color: #9bd8ff;
+    padding: 3px 8px;
+    background: #1f2f3a;
+    border-radius: 3px;
+    margin-right: 6px;
+    flex-shrink: 0;
+    min-width: 78px;
+    text-align: center;
+  }
+
+  .narrate {
+    font-size: 0.82rem;
+    color: #aaa;
+    line-height: 1.65;
+    background: #0d0d18;
+    border-left: 2px solid #9bd8ff;
+    padding: 12px 16px;
+    border-radius: 0 6px 6px 0;
+    margin-top: 18px;
+    min-height: 60px;
+  }
+  .narrate b { color: #fff; }
+  .narrate .accent-lost { color: #ff8a8a; }
+  .narrate .accent-keep { color: #9bffb1; }
+
+  .ordering-toggle {
+    display: inline-flex;
+    background: #11111d;
+    border: 1px solid #2a2a3a;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .ordering-toggle button {
+    background: transparent;
+    border: none;
+    color: #888;
+    padding: 8px 14px;
+    font-family: inherit;
+    font-size: 0.75rem;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+  }
+  .ordering-toggle button.active {
+    background: #1f2f3a;
+    color: #fff;
+  }
+
+  .final-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, #0d1518 0%, #0d180d 100%);
+    border: 1px solid #2d5a3a;
+    border-radius: 8px;
+    margin-top: 14px;
+  }
+  .final-card.lossy {
+    background: linear-gradient(135deg, #18100d 0%, #1a0d0d 100%);
+    border-color: #5a2d2d;
+  }
+  .final-card .fc-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #7be39c;
+  }
+  .final-card.lossy .fc-label { color: #ff8a8a; }
+  .final-card .fc-value {
+    font-size: 1.5rem;
+    color: #fff;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Floating Point Non-Associativity</h1>
+  <p class="subtitle">
+    In math, (a + b) + c = a + (b + c). In floating point, it isn't —
+    because every intermediate result must round back into a fixed number of bits.
+  </p>
+</header>
+
+<!-- ============ SECTION 1: FP16 INSPECTOR ============ -->
+<section class="section">
+  <h2>FP16 — How bits become a number</h2>
+
+  <p class="subtitle" style="margin-bottom:14px">
+    IEEE 754 half precision: <b style="color:#ff9be3">1 sign</b> ·
+    <b style="color:#9bd8ff">5 exponent</b> ·
+    <b style="color:#9bffb1">10 mantissa</b> bits.
+  </p>
+
+  <div class="value-formula">
+    value = (−1)<sup><span style="color:#ff9be3">sign</span></sup>
+    · 2<sup><span style="color:#9bd8ff">E</span> − 15</sup>
+    · 1.<span style="color:#9bffb1">mantissa</span>
+    <div class="formula-note">
+      <span style="color:#9bd8ff">E</span> is the 5-bit exponent field read as an unsigned integer (0–31).
+      The <b>15</b> is the <em>bias</em> — it shifts the range so <code>E = 01111</code> means "no scaling"
+      (2<sup>0</sup> = 1). That's why <b>exact 1.0 has exponent bits 01111</b>.
+    </div>
+  </div>
+
+  <div class="input-row">
+    <label for="fp-input">Try a number:</label>
+    <input type="number" id="fp-input" step="any" value="0.1">
+    <div class="chip-row">
+      <button class="chip" data-val="0">0</button>
+      <button class="chip" data-val="1">1</button>
+      <button class="chip" data-val="0.1">0.1</button>
+      <button class="chip" data-val="-2.5">-2.5</button>
+      <button class="chip" data-val="65504">max (65504)</button>
+      <button class="chip" data-val="100000">overflow</button>
+    </div>
+  </div>
+
+  <div class="fp-card" id="card-zero">
+    <div class="fp-label-row">
+      <div class="fp-name">Exact zero</div>
+      <div class="fp-decimal">0</div>
+    </div>
+    <div class="bits" id="bits-zero"></div>
+    <div class="formula">
+      All bits zero. The sign bit alone can flip it: <code>1 00000 0000000000</code> is -0.
+    </div>
+  </div>
+
+  <div class="fp-card" id="card-one">
+    <div class="fp-label-row">
+      <div class="fp-name">Exact one</div>
+      <div class="fp-decimal">1</div>
+    </div>
+    <div class="bits" id="bits-one"></div>
+    <div class="formula">
+      Exponent = <i>01111</i> (= 15, the bias). Mantissa = <u>0000000000</u>.
+      Value = <b>+1</b> · 2<sup>15-15</sup> · 1.0 = 1. Exact.
+    </div>
+  </div>
+
+  <div class="fp-card" id="card-user">
+    <div class="fp-label-row">
+      <div class="fp-name">Your number</div>
+      <div class="fp-decimal" id="user-decimal">0.1</div>
+    </div>
+    <div class="bits" id="bits-user"></div>
+    <div class="formula" id="user-formula"></div>
+  </div>
+
+  <div class="legend">
+    <span class="l-sign">sign</span>
+    <span class="l-exp">exponent</span>
+    <span class="l-mant">mantissa</span>
+  </div>
+</section>
+
+<!-- ============ SECTION 2: NON-ASSOCIATIVITY ============ -->
+<section class="section">
+  <h2>(big + 1) − big &nbsp;≠&nbsp; (big − big) + 1</h2>
+
+  <p class="subtitle" style="margin-bottom:18px">
+    With <code>big = 10<sup>8</sup></code>, the value 1 is so much smaller it can't survive
+    the addition — it rounds away. But subtract first, and it survives.
+    <br><em style="color:#666">Using float32 here, because 10<sup>8</sup> overflows FP16's max of 65504.</em>
+  </p>
+
+  <div class="demo-controls">
+    <label for="big-input" style="color:#888; letter-spacing:0.1em; text-transform:uppercase; font-size:0.7rem">big =</label>
+    <input type="text" id="big-input" class="big-num" value="1e8">
+    <span class="eq">+</span>
+    <input type="text" id="small-input" class="big-num" value="1">
+    <span class="eq">−</span>
+    <span style="color:#888">big</span>
+  </div>
+
+  <div class="duel">
+    <div class="lane correct" id="lane-left">
+      <div class="lane-title">(big − big) + small</div>
+      <div id="steps-left"></div>
+      <div class="result" id="result-left">—</div>
+    </div>
+
+    <div class="lane wrong" id="lane-right">
+      <div class="lane-title">(big + small) − big</div>
+      <div id="steps-right"></div>
+      <div class="result" id="result-right">—</div>
+    </div>
+  </div>
+
+  <div class="verdict" id="verdict"></div>
+
+  <p class="footnote">
+    The same hardware. The same three numbers. Only the order changed.
+    This is why parallel reductions (where chunks combine in nondeterministic order)
+    produce slightly different sums on every run.
+  </p>
+</section>
+
+<!-- ============ SECTION 3: REGISTER-LEVEL ============ -->
+<section class="section">
+  <h2>Inside the adder — watch bits fall off the register</h2>
+
+  <p class="subtitle" style="margin-bottom:18px">
+    Floating-point addition can't just add two bit patterns. First it has to
+    <b>align the exponents</b> — shift the smaller number's mantissa right
+    until its exponent matches the larger one's. Anything that shifts past the
+    register width is gone forever.
+    <br><em style="color:#666">Demo uses FP16 so all 11 significand bits fit on screen.</em>
+  </p>
+
+  <div class="reg-controls">
+    <label style="font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:#888">Order:</label>
+    <div class="ordering-toggle">
+      <button id="ord-add"  class="active">(big + small) − big</button>
+      <button id="ord-sub">(big − big) + small</button>
+    </div>
+    <div class="chip-row">
+      <button class="chip" data-preset="2048,1">2048 + 1</button>
+      <button class="chip" data-preset="4096,1">4096 + 1</button>
+      <button class="chip" data-preset="1024,1">1024 + 1</button>
+      <button class="chip" data-preset="512,3">512 + 3</button>
+    </div>
+  </div>
+
+  <div class="reg-step-btns">
+    <button id="btn-reset">Reset</button>
+    <button id="btn-step" class="primary">Step ▸</button>
+    <button id="btn-auto">Auto-play</button>
+  </div>
+
+  <div class="reg-stage">
+    <div class="stage-label" id="stage-label">Stage <b>0</b> · Operands loaded</div>
+
+    <div class="reg-row">
+      <div class="op-tag">big</div>
+      <div class="exp-tag" id="big-exp">2<sup>11</sup></div>
+      <div class="mantissa-track" id="big-track"></div>
+      <div class="reg-value" id="big-val">2048</div>
+    </div>
+
+    <div class="reg-row">
+      <div class="op-tag" id="small-tag">small</div>
+      <div class="exp-tag" id="small-exp">2<sup>0</sup></div>
+      <div class="mantissa-track" id="small-track"></div>
+      <div class="reg-value" id="small-val">1</div>
+    </div>
+
+    <div class="reg-row" id="result-row" style="border-top:1px dashed #1f1f2c; padding-top:10px; margin-top:14px">
+      <div class="op-tag" style="color:#9bd8ff">sum</div>
+      <div class="exp-tag" id="sum-exp">—</div>
+      <div class="mantissa-track" id="sum-track"></div>
+      <div class="reg-value" id="sum-val">—</div>
+    </div>
+  </div>
+
+  <div class="narrate" id="narrate">
+    Hit <b>Step ▸</b> to run one floating-point addition by hand.
+    The track on the right shows the 11-bit significand (the implicit leading
+    <span style="color:#ff9be3">1</span> plus 10 mantissa bits), followed by
+    <span style="color:#888">guard bits</span> that the hardware computes during alignment but doesn't keep.
+  </div>
+
+  <div class="final-card" id="final-card" style="display:none">
+    <div>
+      <div class="fc-label" id="fc-label">After both ops</div>
+      <div style="font-size:0.75rem; color:#888; margin-top:4px" id="fc-expr">(big + small) − big</div>
+    </div>
+    <div class="fc-value" id="fc-value">—</div>
+  </div>
+</section>
+
+<script>
+// ======================================================================
+// FP16 encoding (round-to-nearest-even)
+// ======================================================================
+function toFp16Bits(x) {
+  // Special cases
+  if (Number.isNaN(x))      return 0x7e00;
+  if (x === 0)              return Object.is(x, -0) ? 0x8000 : 0x0000;
+  const sign = x < 0 ? 1 : 0;
+  const ax = Math.abs(x);
+  if (ax > 65504)           return (sign << 15) | 0x7c00; // Inf
+
+  // Use Float32 trick: pack into f32, then extract & re-round.
+  // Simpler: compute exponent & mantissa directly.
+  const e = Math.floor(Math.log2(ax));
+  let expBits, mantBits;
+  if (e >= -14) {
+    // Normal
+    const m = ax / Math.pow(2, e) - 1; // in [0, 1)
+    let mantissa = Math.round(m * 1024);
+    let exponent = e + 15;
+    if (mantissa === 1024) { mantissa = 0; exponent += 1; }
+    if (exponent >= 31) return (sign << 15) | 0x7c00;
+    expBits = exponent;
+    mantBits = mantissa;
+  } else {
+    // Subnormal
+    const m = ax / Math.pow(2, -14);
+    const mantissa = Math.round(m * 1024);
+    if (mantissa === 0) return sign << 15;
+    expBits = 0;
+    mantBits = mantissa;
+  }
+  return (sign << 15) | (expBits << 10) | mantBits;
+}
+
+function fp16BitsToFloat(bits) {
+  const sign = (bits >> 15) & 1;
+  const exp  = (bits >> 10) & 0x1f;
+  const mant = bits & 0x3ff;
+  let v;
+  if (exp === 0) {
+    v = mant === 0 ? 0 : Math.pow(2, -14) * (mant / 1024);
+  } else if (exp === 31) {
+    v = mant === 0 ? Infinity : NaN;
+  } else {
+    v = Math.pow(2, exp - 15) * (1 + mant / 1024);
+  }
+  return sign ? -v : v;
+}
+
+function renderBits(container, bits) {
+  container.innerHTML = '';
+  const str = bits.toString(2).padStart(16, '0');
+  for (let i = 0; i < 16; i++) {
+    const b = str[i];
+    const div = document.createElement('div');
+    div.classList.add('bit');
+    if (i === 0)                   div.classList.add('sign');
+    else if (i >= 1 && i <= 5)     div.classList.add('exp');
+    else                           div.classList.add('mant');
+    if (b === '0')                 div.classList.add('zero');
+    div.textContent = b;
+    container.appendChild(div);
+  }
+}
+
+function describe(bits, original) {
+  const sign = (bits >> 15) & 1;
+  const exp  = (bits >> 10) & 0x1f;
+  const mant = bits & 0x3ff;
+  const value = fp16BitsToFloat(bits);
+
+  if (exp === 31 && mant === 0)
+    return `<b>${sign?'-':'+'}∞</b> — number too large for FP16 (max ≈ 65504).`;
+  if (exp === 31)
+    return `<b>NaN</b> — not a number.`;
+  if (exp === 0 && mant === 0)
+    return `Zero. All exponent and mantissa bits are 0.`;
+
+  const signStr = sign ? '-1' : '+1';
+  const expStr  = exp === 0 ? '-14 (subnormal)' : `${exp - 15}`;
+  const mantStr = exp === 0 ? `0.${mant.toString(2).padStart(10,'0')}` : `1.${mant.toString(2).padStart(10,'0')}`;
+  const err = Math.abs(value - original);
+  const errStr = err > 0 && Number.isFinite(value)
+    ? ` <span class="err">rounded · error ≈ ${err.toExponential(2)}</span>`
+    : '';
+  return `value = <b>${signStr}</b> · 2<sup><i>${expStr}</i></sup> · <u>${mantStr}</u><sub>2</sub> = ${value}${errStr}`;
+}
+
+// Render the three cards
+renderBits(document.getElementById('bits-zero'), toFp16Bits(0));
+renderBits(document.getElementById('bits-one'),  toFp16Bits(1));
+
+const fpInput     = document.getElementById('fp-input');
+const userBits    = document.getElementById('bits-user');
+const userDec     = document.getElementById('user-decimal');
+const userFormula = document.getElementById('user-formula');
+
+function updateUser() {
+  const v = parseFloat(fpInput.value);
+  if (!Number.isFinite(v) && !Number.isNaN(v) && fpInput.value !== '') {
+    // allow Infinity input
+  }
+  const x = isNaN(v) ? 0 : v;
+  const bits = toFp16Bits(x);
+  renderBits(userBits, bits);
+  const stored = fp16BitsToFloat(bits);
+  const errExt = (Math.abs(stored - x) > 0 && Number.isFinite(stored))
+    ? ` <span class="err">stored as ${stored}</span>` : '';
+  userDec.innerHTML = `${x}${errExt}`;
+  userFormula.innerHTML = describe(bits, x);
+}
+fpInput.addEventListener('input', updateUser);
+document.querySelectorAll('.chip[data-val]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    fpInput.value = btn.dataset.val;
+    updateUser();
+  });
+});
+updateUser();
+
+// Update card descriptions for 0 and 1
+document.querySelector('#card-zero .formula').innerHTML =
+  describe(toFp16Bits(0), 0) +
+  '<br><span style="color:#666">All bits zero. The sign bit alone can flip it: <code>1 00000 0000000000</code> is -0.</span>';
+document.querySelector('#card-one .formula').innerHTML =
+  describe(toFp16Bits(1), 1) +
+  '<br><span style="color:#666">Exponent 01111 is 15 (the bias). Mantissa is all zero → factor of exactly 1.0.</span>';
+
+// ======================================================================
+// Non-associativity demo (float32)
+// ======================================================================
+const f32 = new Float32Array(1);
+function toF32(x) { f32[0] = x; return f32[0]; }
+
+function fmt(x) {
+  if (x === 0) return '0';
+  if (Math.abs(x) >= 1e6 || (Math.abs(x) < 0.001 && x !== 0))
+    return x.toExponential(4);
+  return x.toString();
+}
+
+function runDemo() {
+  const big   = toF32(parseFloat(document.getElementById('big-input').value));
+  const small = toF32(parseFloat(document.getElementById('small-input').value));
+
+  // Left lane: (big - big) + small  -> correct
+  const lDiff = toF32(big - big);
+  const lSum  = toF32(lDiff + small);
+
+  // Right lane: (big + small) - big -> lossy
+  const rSum  = toF32(big + small);
+  const rDiff = toF32(rSum - big);
+
+  document.getElementById('steps-left').innerHTML = `
+    <div class="step"><span class="lhs">big − big</span><span class="rhs">${fmt(lDiff)}</span></div>
+    <div class="step"><span class="lhs">+ small</span><span class="rhs">${fmt(small)}</span></div>
+  `;
+  document.getElementById('result-left').textContent = fmt(lSum);
+
+  document.getElementById('steps-right').innerHTML = `
+    <div class="step"><span class="lhs">big + small</span><span class="rhs">${fmt(rSum)} <span style="color:#777">${rSum === big ? '← small absorbed' : ''}</span></span></div>
+    <div class="step"><span class="lhs">− big</span><span class="rhs">${fmt(big)}</span></div>
+  `;
+  document.getElementById('result-right').textContent = fmt(rDiff);
+
+  const diff = lSum - rDiff;
+  const verdict = document.getElementById('verdict');
+  if (diff === 0) {
+    verdict.innerHTML = `Both orderings agree: <b>${fmt(lSum)}</b>. Try a bigger <code>big</code> or smaller <code>small</code> to see the gap open.`;
+  } else {
+    verdict.innerHTML = `
+      Two valid mathematical orderings — same operations, same inputs — disagree by <b>${fmt(diff)}</b>.<br>
+      In the right lane, <code>small</code> was smaller than the rounding gap at <code>big</code>'s magnitude, so it vanished into the mantissa.
+    `;
+  }
+}
+
+['big-input', 'small-input'].forEach(id => {
+  document.getElementById(id).addEventListener('input', runDemo);
+});
+runDemo();
+
+// ======================================================================
+// Register-level visualizer
+// ======================================================================
+// Significand layout (left to right):
+//   [implicit 1] [m9 m8 ... m0]  · [g1 g2 g3 g4]  ← guard bits past the register
+// Mantissa register = 11 bits (implicit + 10). We show 4 extra guard bits.
+// Bits shifted past position 10 are "lost" (shown red, then fade).
+
+const REG_WIDTH = 11;   // implicit + 10 mantissa
+const GUARD     = 4;    // guard slots shown past the register edge
+
+let regState = {
+  mode: 'add',          // 'add' = (big+small)-big, 'sub' = (big-big)+small
+  big: 2048,
+  small: 1,
+  stage: 0,             // 0 load → 1 align → 2 add → 3 normalize → 4 second op
+  bigSig: null,         // {exp, bits: [11+guard]} where bits[0] is implicit 1
+  smallSig: null,
+  sumSig: null,
+  intermediate: null,   // value after first op
+  autoTimer: null,
+};
+
+function decompose(x) {
+  // Returns {exp, bits} where bits[0..REG_WIDTH-1+GUARD] is the significand
+  // (bits[0] = implicit 1 for normals).
+  if (x === 0) return { exp: -Infinity, bits: new Array(REG_WIDTH + GUARD).fill(0), zero: true };
+  const ax = Math.abs(x);
+  const exp = Math.floor(Math.log2(ax));
+  const frac = ax / Math.pow(2, exp);   // in [1, 2)
+  const bits = new Array(REG_WIDTH + GUARD).fill(0);
+  let r = frac;
+  for (let i = 0; i < bits.length; i++) {
+    if (r >= 1) { bits[i] = 1; r -= 1; }
+    r *= 2;
+  }
+  return { exp, bits, zero: false, sign: x < 0 ? 1 : 0 };
+}
+
+function recompose(sig) {
+  if (sig.zero) return 0;
+  let v = 0;
+  for (let i = 0; i < REG_WIDTH; i++) v += sig.bits[i] * Math.pow(2, -i);
+  return (sig.sign ? -1 : 1) * v * Math.pow(2, sig.exp);
+}
+
+function renderTrack(container, sig, opts = {}) {
+  container.innerHTML = '';
+  if (!sig) return;
+  if (sig.zero) {
+    const z = document.createElement('div');
+    z.style.cssText = 'color:#555; font-size:0.8rem; padding:0 8px;';
+    z.textContent = '0.000…';
+    container.appendChild(z);
+    return;
+  }
+  for (let i = 0; i < REG_WIDTH + GUARD; i++) {
+    const b = document.createElement('div');
+    b.classList.add('mbit');
+    if (i === 0) {
+      b.classList.add('implicit');
+    } else if (i < REG_WIDTH) {
+      b.classList.add('normal');
+      if (sig.bits[i] === 0) b.classList.add('zero');
+    } else {
+      b.classList.add('guard');
+      if (opts.lostAt !== undefined && i >= opts.lostAt) b.classList.add('lost');
+    }
+    if (opts.fadingFrom !== undefined && i >= opts.fadingFrom) b.classList.add('fading');
+    if (i === 1) {
+      const dot = document.createElement('div');
+      dot.classList.add('mbit', 'dot');
+      dot.textContent = '·';
+      container.appendChild(dot);
+    }
+    if (i === REG_WIDTH) {
+      const sep = document.createElement('div');
+      sep.style.cssText = 'width:2px; height:30px; background:#444; margin:0 4px;';
+      sep.title = 'register edge';
+      container.appendChild(sep);
+    }
+    b.textContent = sig.bits[i];
+    container.appendChild(b);
+  }
+}
+
+function fmtExp(e) {
+  if (e === -Infinity || e === null) return '—';
+  return `2<sup>${e}</sup>`;
+}
+
+function shiftRight(sig, n) {
+  // Shifts the significand right by n positions, returns new sig with same exp+n.
+  // Bits shifted past (REG_WIDTH + GUARD - 1) are dropped (the "lost" ones).
+  const newBits = new Array(REG_WIDTH + GUARD).fill(0);
+  for (let i = 0; i < REG_WIDTH + GUARD; i++) {
+    const src = i - n;
+    if (src >= 0 && src < REG_WIDTH + GUARD) newBits[i] = sig.bits[src];
+  }
+  return { exp: sig.exp + n, bits: newBits, zero: false, sign: sig.sign };
+}
+
+function addSig(a, b) {
+  // a.exp must equal b.exp. Adds bit-by-bit with carry.
+  const n = REG_WIDTH + GUARD;
+  const out = new Array(n + 1).fill(0);
+  let carry = 0;
+  for (let i = n - 1; i >= 0; i--) {
+    const s = a.bits[i] + b.bits[i] + carry;
+    out[i + 1] = s & 1;
+    carry = s >> 1;
+  }
+  out[0] = carry;
+  // If there's a carry-out, the new bit[0] is the carry. The mantissa shifts right by 1, exp+=1.
+  let bits, exp;
+  if (out[0] === 1) {
+    bits = out.slice(0, n);
+    exp = a.exp + 1;
+  } else {
+    bits = out.slice(1, n + 1);
+    exp = a.exp;
+  }
+  return { exp, bits, zero: bits.every(x => x === 0), sign: a.sign };
+}
+
+function subSig(a, b) {
+  // a - b, assuming same exponent, a >= b numerically.
+  const n = REG_WIDTH + GUARD;
+  const out = new Array(n).fill(0);
+  let borrow = 0;
+  for (let i = n - 1; i >= 0; i--) {
+    let d = a.bits[i] - b.bits[i] - borrow;
+    if (d < 0) { d += 2; borrow = 1; } else borrow = 0;
+    out[i] = d;
+  }
+  // Normalize: shift left until bits[0] = 1
+  let exp = a.exp;
+  while (out.every(x => x === 0) === false && out[0] === 0) {
+    out.shift(); out.push(0); exp -= 1;
+  }
+  const zero = out.every(x => x === 0);
+  return { exp, bits: out, zero, sign: 0 };
+}
+
+const els = {
+  bigTrack: document.getElementById('big-track'),
+  smallTrack: document.getElementById('small-track'),
+  sumTrack: document.getElementById('sum-track'),
+  bigExp: document.getElementById('big-exp'),
+  smallExp: document.getElementById('small-exp'),
+  sumExp: document.getElementById('sum-exp'),
+  bigVal: document.getElementById('big-val'),
+  smallVal: document.getElementById('small-val'),
+  sumVal: document.getElementById('sum-val'),
+  smallTag: document.getElementById('small-tag'),
+  stageLabel: document.getElementById('stage-label'),
+  narrate: document.getElementById('narrate'),
+  finalCard: document.getElementById('final-card'),
+  fcLabel: document.getElementById('fc-label'),
+  fcExpr: document.getElementById('fc-expr'),
+  fcValue: document.getElementById('fc-value'),
+  btnStep: document.getElementById('btn-step'),
+  btnReset: document.getElementById('btn-reset'),
+  btnAuto: document.getElementById('btn-auto'),
+  ordAdd: document.getElementById('ord-add'),
+  ordSub: document.getElementById('ord-sub'),
+};
+
+function resetReg() {
+  if (regState.autoTimer) { clearInterval(regState.autoTimer); regState.autoTimer = null; els.btnAuto.textContent = 'Auto-play'; }
+  regState.stage = 0;
+  regState.intermediate = null;
+  regState.bigSig = decompose(regState.big);
+  regState.smallSig = decompose(regState.small);
+  regState.sumSig = null;
+  els.finalCard.style.display = 'none';
+  els.btnStep.disabled = false;
+  renderRegStage();
+}
+
+function renderRegStage() {
+  const { mode, big, small, stage, bigSig, smallSig, sumSig } = regState;
+  els.bigVal.textContent = big;
+  els.smallVal.textContent = small;
+  els.bigExp.innerHTML = fmtExp(bigSig.exp);
+  els.smallExp.innerHTML = fmtExp(smallSig.exp);
+  els.smallTag.textContent = (mode === 'sub' && stage === 0) ? '−big' : 'small';
+
+  const isFirstOpAdd = (mode === 'add');   // first op is + small
+  const labels = {
+    add: ['Load operands', 'Align exponents', 'Lose tiny bits', 'Add mantissas', 'Subtract big'],
+    sub: ['Load operands', 'big − big', 'Result is 0', 'Add small', 'Final result'],
+  };
+  const label = labels[mode][stage] || 'Done';
+  els.stageLabel.innerHTML = `Stage <b>${stage}</b> · ${label}`;
+
+  // Render based on mode + stage
+  if (mode === 'add') {
+    renderAddMode(stage);
+  } else {
+    renderSubMode(stage);
+  }
+}
+
+function renderAddMode(stage) {
+  const { bigSig, smallSig, big, small } = regState;
+  const expDiff = bigSig.exp - smallSig.exp;
+
+  if (stage === 0) {
+    renderTrack(els.bigTrack, bigSig);
+    renderTrack(els.smallTrack, smallSig);
+    renderTrack(els.sumTrack, null);
+    els.sumExp.innerHTML = '—'; els.sumVal.textContent = '—';
+    els.narrate.innerHTML = `
+      <b>big = ${big}</b> has exponent <span style="color:#9bd8ff">2<sup>${bigSig.exp}</sup></span>.
+      <b>small = ${small}</b> has exponent <span style="color:#9bd8ff">2<sup>${smallSig.exp}</sup></span>.
+      The gap is <b>${expDiff}</b> positions — small's mantissa must be shifted right by ${expDiff} to match big's scale.
+    `;
+  } else if (stage === 1) {
+    // Show the shift visually — small's bits move right by expDiff
+    const shifted = shiftRight(smallSig, expDiff);
+    renderTrack(els.bigTrack, bigSig);
+    renderTrack(els.smallTrack, shifted, { lostAt: REG_WIDTH });
+    renderTrack(els.sumTrack, null);
+    els.smallExp.innerHTML = fmtExp(shifted.exp);
+    const lostCount = expDiff - 1 + (REG_WIDTH - 1 - (REG_WIDTH - expDiff));
+    const bitsOffRegister = Math.max(0, expDiff - (REG_WIDTH - 1));
+    els.narrate.innerHTML = `
+      Small's significand was just shifted <b>${expDiff} positions right</b> to align with big.
+      Its leading <span style="color:#ff9be3">1</span> now sits at bit position <b>${expDiff}</b>.
+      ${bitsOffRegister > 0
+        ? `<span class="accent-lost">${bitsOffRegister} bit(s) just fell off the register edge into the guard zone — they're about to be discarded.</span>`
+        : `It still fits inside the register — addition will preserve it.`}
+    `;
+  } else if (stage === 2) {
+    // Drop the guard bits
+    const shifted = shiftRight(smallSig, expDiff);
+    renderTrack(els.bigTrack, bigSig);
+    renderTrack(els.smallTrack, shifted, { fadingFrom: REG_WIDTH });
+    renderTrack(els.sumTrack, null);
+    const truncated = { ...shifted, bits: shifted.bits.map((b, i) => i < REG_WIDTH ? b : 0) };
+    regState._aligned = truncated;
+    const survived = truncated.bits.some(b => b === 1);
+    els.narrate.innerHTML = survived
+      ? `Bits past the register edge are <span class="accent-lost">discarded</span>. Small's surviving bits are <span class="accent-keep">still inside</span> — they'll contribute to the sum.`
+      : `<b>All of small's bits</b> fell past the register edge. <span class="accent-lost">Nothing remains.</span> When we add, the result will equal big exactly — small has been <b>absorbed</b>.`;
+  } else if (stage === 3) {
+    const aligned = regState._aligned || shiftRight(smallSig, expDiff);
+    const sum = addSig(bigSig, aligned);
+    regState.sumSig = sum;
+    renderTrack(els.bigTrack, bigSig);
+    renderTrack(els.smallTrack, aligned);
+    renderTrack(els.sumTrack, sum);
+    els.sumExp.innerHTML = fmtExp(sum.exp);
+    const sumVal = recompose(sum);
+    els.sumVal.textContent = sumVal;
+    const lossy = sumVal === regState.big;
+    els.narrate.innerHTML = `
+      Mantissas added → sum = <b>${sumVal}</b>.
+      ${lossy
+        ? `<span class="accent-lost">This equals big.</span> Small contributed exactly nothing.`
+        : `Small left a tiny mark in the low bits.`}
+    `;
+  } else if (stage === 4) {
+    // Subtract big from the sum
+    const sum = regState.sumSig;
+    const result = subSig(sum, bigSig);
+    regState.intermediate = recompose(sum);
+    const finalVal = recompose(result);
+    renderTrack(els.bigTrack, sum);
+    renderTrack(els.smallTrack, bigSig);
+    renderTrack(els.sumTrack, result);
+    els.bigExp.innerHTML = fmtExp(sum.exp);
+    els.smallExp.innerHTML = fmtExp(bigSig.exp);
+    els.sumExp.innerHTML = fmtExp(result.exp);
+    els.bigVal.textContent = recompose(sum);
+    els.smallVal.textContent = '−' + regState.big;
+    els.sumVal.textContent = finalVal;
+    els.smallTag.textContent = '−big';
+    const lossy = finalVal !== regState.small;
+    els.finalCard.style.display = 'flex';
+    els.finalCard.classList.toggle('lossy', lossy);
+    els.fcLabel.textContent = lossy ? 'Final · lost the small' : 'Final · preserved';
+    els.fcExpr.textContent = '(big + small) − big';
+    els.fcValue.textContent = finalVal;
+    els.narrate.innerHTML = lossy
+      ? `Subtracting big from (big+small) gives <b class="accent-lost">${finalVal}</b>. Small was destroyed two steps ago and there's nothing left to recover.`
+      : `Subtracting big from (big+small) gives <b class="accent-keep">${finalVal}</b>. Small survived the rounding because the register had room.`;
+    els.btnStep.disabled = true;
+  }
+}
+
+function renderSubMode(stage) {
+  const { bigSig, smallSig, big, small } = regState;
+
+  if (stage === 0) {
+    renderTrack(els.bigTrack, bigSig);
+    renderTrack(els.smallTrack, bigSig);
+    renderTrack(els.sumTrack, null);
+    els.smallVal.textContent = big;
+    els.smallTag.textContent = 'big';
+    els.smallExp.innerHTML = fmtExp(bigSig.exp);
+    els.sumExp.innerHTML = '—'; els.sumVal.textContent = '—';
+    els.narrate.innerHTML = `
+      First op: <b>big − big</b>. Same exponent, identical mantissas — no alignment needed.
+      Subtraction will produce <span class="accent-keep">exact zero</span>.
+    `;
+  } else if (stage === 1) {
+    const diff = subSig(bigSig, bigSig);
+    regState.sumSig = diff;
+    renderTrack(els.bigTrack, bigSig);
+    renderTrack(els.smallTrack, bigSig);
+    renderTrack(els.sumTrack, diff);
+    els.sumExp.innerHTML = diff.zero ? '0' : fmtExp(diff.exp);
+    els.sumVal.textContent = '0';
+    els.narrate.innerHTML = `big − big = <b class="accent-keep">0</b>. No rounding happened because every bit lined up.`;
+  } else if (stage === 2) {
+    renderTrack(els.bigTrack, { zero: true, bits: [], exp: -Infinity });
+    renderTrack(els.smallTrack, smallSig);
+    renderTrack(els.sumTrack, null);
+    els.bigVal.textContent = '0';
+    els.bigExp.innerHTML = '—';
+    els.smallVal.textContent = small;
+    els.smallExp.innerHTML = fmtExp(smallSig.exp);
+    els.smallTag.textContent = 'small';
+    els.sumExp.innerHTML = '—'; els.sumVal.textContent = '—';
+    els.narrate.innerHTML = `Now add <b>small = ${small}</b> to <b>0</b>. Zero has no exponent constraint — adding to it never loses bits.`;
+  } else if (stage === 3) {
+    renderTrack(els.bigTrack, { zero: true, bits: [], exp: -Infinity });
+    renderTrack(els.smallTrack, smallSig);
+    renderTrack(els.sumTrack, smallSig);
+    els.sumExp.innerHTML = fmtExp(smallSig.exp);
+    els.sumVal.textContent = small;
+    els.narrate.innerHTML = `<b>0 + ${small} = ${small}</b>. <span class="accent-keep">Nothing was lost.</span>`;
+  } else if (stage === 4) {
+    els.finalCard.style.display = 'flex';
+    els.finalCard.classList.remove('lossy');
+    els.fcLabel.textContent = 'Final · preserved';
+    els.fcExpr.textContent = '(big − big) + small';
+    els.fcValue.textContent = small;
+    els.narrate.innerHTML = `
+      Final value: <b class="accent-keep">${small}</b>.<br>
+      Same three numbers, same hardware as the other ordering — but this time the subtraction came first, so the small number never had to survive being aligned next to a giant.
+    `;
+    els.btnStep.disabled = true;
+  }
+}
+
+function stepReg() {
+  const maxStage = 4;
+  if (regState.stage < maxStage) {
+    regState.stage += 1;
+    renderRegStage();
+  }
+  if (regState.stage >= maxStage) {
+    els.btnStep.disabled = true;
+    if (regState.autoTimer) { clearInterval(regState.autoTimer); regState.autoTimer = null; els.btnAuto.textContent = 'Auto-play'; }
+  }
+}
+
+els.btnStep.addEventListener('click', stepReg);
+els.btnReset.addEventListener('click', resetReg);
+els.btnAuto.addEventListener('click', () => {
+  if (regState.autoTimer) {
+    clearInterval(regState.autoTimer); regState.autoTimer = null;
+    els.btnAuto.textContent = 'Auto-play';
+  } else {
+    if (regState.stage >= 4) resetReg();
+    els.btnAuto.textContent = '⏸ Pause';
+    regState.autoTimer = setInterval(() => {
+      stepReg();
+      if (regState.stage >= 4) {
+        clearInterval(regState.autoTimer); regState.autoTimer = null;
+        els.btnAuto.textContent = 'Auto-play';
+      }
+    }, 1400);
+  }
+});
+
+els.ordAdd.addEventListener('click', () => {
+  regState.mode = 'add';
+  els.ordAdd.classList.add('active');
+  els.ordSub.classList.remove('active');
+  resetReg();
+});
+els.ordSub.addEventListener('click', () => {
+  regState.mode = 'sub';
+  els.ordSub.classList.add('active');
+  els.ordAdd.classList.remove('active');
+  resetReg();
+});
+
+document.querySelectorAll('.chip[data-preset]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const [b, s] = btn.dataset.preset.split(',').map(Number);
+    regState.big = b;
+    regState.small = s;
+    resetReg();
+  });
+});
+
+resetReg();
+</script>
+
+</body>
+</html>
