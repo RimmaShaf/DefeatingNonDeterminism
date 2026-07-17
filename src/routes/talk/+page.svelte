@@ -16,6 +16,7 @@
 	import LiveDeterminismDemo from '$lib/components/modules/LiveDeterminismDemo.svelte';
 	import PoemVarianceDemo from '$lib/components/modules/PoemVarianceDemo.svelte';
 	import PoemVarianceGroqDemo from '$lib/components/modules/PoemVarianceGroqDemo.svelte';
+	import PoemVarianceVllmDemo from '$lib/components/modules/PoemVarianceVllmDemo.svelte';
 	import QuantAccumulatorDemo from '$lib/components/modules/QuantAccumulatorDemo.svelte';
 	import WeightsFileGag from '$lib/components/modules/WeightsFileGag.svelte';
 	import ProofBlock from '$lib/components/ProofBlock.svelte';
@@ -24,7 +25,7 @@
 
 	// Beats are numbered by DOM order — add/move/remove <section class="beat">
 	// freely, just keep TOTAL_BEATS equal to the number of sections.
-	const TOTAL_BEATS = 20;
+	const TOTAL_BEATS = 21;
 
 	// Decorative line-art pattern, used sparingly (cold open + epilogue).
 	const patternStyle = `--pattern: url('${base}/talk-assets/pattern-blue.jpg')`;
@@ -123,6 +124,26 @@
 			temperature 0 — formally the “deterministic” mode. Every line is colored by which variant
 			of the text this run happened to get.
 		</p>
+		<details class="beat__code">
+			<summary>Show the exact API call</summary>
+			<pre><code>{`import Anthropic from '@anthropic-ai/sdk';
+
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+const PROMPT =
+  'Write a highly creative four-line poem about a clock that counts backward.';
+
+for (let i = 0; i < 100; i++) {
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 200,
+    temperature: 0, // the "deterministic" mode
+    thinking: { type: 'disabled' },
+    messages: [{ role: 'user', content: PROMPT }]
+  });
+  console.log(message.content[0].text);
+}`}</code></pre>
+		</details>
 		<div class="beat__demo beat__demo--wide">
 			<PoemVarianceDemo />
 		</div>
@@ -401,6 +422,31 @@
 			The same 100-call experiment against <span class="mono">openai/gpt-oss-120b</span> on Groq —
 			this time with a fixed <span class="mono">seed</span> on top of temperature 0.
 		</p>
+		<details class="beat__code">
+			<summary>Show the exact API call</summary>
+			<pre><code>{`const PROMPT =
+  'Write a highly creative four-line poem about a clock that counts backward.';
+
+for (let i = 0; i < 100; i++) {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + process.env.GROQ_API_KEY
+    },
+    body: JSON.stringify({
+      model: 'openai/gpt-oss-120b',
+      max_completion_tokens: 1024,
+      reasoning_effort: 'low',
+      temperature: 0,
+      seed: 700, // pinned seed, on top of temperature 0
+      messages: [{ role: 'user', content: PROMPT }]
+    })
+  });
+  const data = await res.json();
+  console.log(data.choices[0].message.content);
+}`}</code></pre>
+		</details>
 		<div class="beat__demo beat__demo--wide">
 			<PoemVarianceGroqDemo />
 		</div>
@@ -412,6 +458,43 @@
 			identical. Spread across minutes: drift. The divergence follows the
 			<span class="hl">batching windows</span>, not the model.<br />
 			<span class="hl">Deterministic hardware ≠ deterministic API.</span>
+		</p>
+	</section>
+
+	<!-- THE FIX — batch invariance on a GPU you control -->
+	<section class="beat beat--pattern" style={patternStyle}>
+		<p class="beat__kicker">Epilogue · The fix</p>
+		<h1 class="beat__statement">So <span class="hl">fix the batching.</span></h1>
+		<p class="beat__sub">
+			Same 100-call experiment, self-hosted <span class="mono">Llama-3.1-8B-Instruct</span> on a
+			single GPU via <span class="mono">vLLM</span>, with
+			<span class="hl">batch invariance</span> switched on — deterministic reduction kernels
+			instead of whichever one is fastest for the batch shape you happen to land in.
+		</p>
+		<details class="beat__code">
+			<summary>Show the exact experiment code</summary>
+			<pre><code>{`import os
+os.environ["VLLM_BATCH_INVARIANT"] = "1"  # the fix
+
+from vllm import LLM, SamplingParams
+
+PROMPT = "Write a highly creative four-line poem about a clock that counts backward."
+
+llm = LLM(model="meta-llama/Llama-3.1-8B-Instruct")
+sampling = SamplingParams(temperature=0.0, max_tokens=200, seed=42)
+
+outputs = llm.generate([PROMPT] * 100, sampling)
+for out in outputs:
+    print(out.outputs[0].text.strip())`}</code></pre>
+		</details>
+		<div class="beat__demo beat__demo--wide">
+			<PoemVarianceVllmDemo />
+		</div>
+		<p class="beat__sub">
+			Same dynamic batching that broke every other demo tonight — this time it doesn't matter.
+			<span class="hl">One poem, 100 times.</span><br />
+			Nondeterminism was never inevitable. It was a
+			<span class="hl">performance trade-off</span> nobody told you they were making.
 		</p>
 	</section>
 </div>
@@ -554,6 +637,43 @@
 
 	.beat__demo--wide:not(.beat__demo--bare) {
 		width: calc(var(--demo-width-wide) / var(--demo-zoom));
+	}
+
+	.beat__code {
+		width: min(880px, 92vw);
+		text-align: left;
+	}
+
+	.beat__code summary {
+		cursor: pointer;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: clamp(15px, 1.5vw, 20px);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--accent);
+		text-align: center;
+		list-style-position: inside;
+	}
+
+	.beat__code summary:hover {
+		color: var(--heading);
+	}
+
+	.beat__code pre {
+		margin: 14px 0 0;
+		padding: 18px 22px;
+		background: var(--panel);
+		border-radius: 14px;
+		box-shadow: 0 0 0 1px var(--line);
+		overflow-x: auto;
+	}
+
+	.beat__code code {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: clamp(14px, 1.3vw, 19px);
+		line-height: 1.55;
+		color: var(--ink);
+		white-space: pre;
 	}
 
 	/* Two modules side by side so the beat fits one screen. */
