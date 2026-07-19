@@ -118,20 +118,17 @@
 	<!-- LIVE EVIDENCE — 100× to the cloud, temperature 0 -->
 	<section class="beat">
 		<p class="beat__kicker">Act I · Live evidence</p>
-		<h1 class="beat__statement">Don't take my word for it.</h1>
-		<p class="beat__sub">
+		<h1 class="beat__statement">Temperature = 0 is not the fix</h1>
+		<!-- <p class="beat__sub">
 			<span class="mono">claude-sonnet-4-6</span>, one prompt, <span class="hl">100 calls</span>,
-			temperature 0 — formally the “deterministic” mode. Every line is colored by which variant
-			of the text this run happened to get.
-		</p>
+			temperature 0 — formally the “deterministic” mode.
+		</p> -->
 		<details class="beat__code">
 			<summary>Show the exact API call</summary>
 			<pre><code>{`import Anthropic from '@anthropic-ai/sdk';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 const PROMPT =
-  'Write a highly creative four-line poem about a clock that counts backward.';
+'Write a highly creative four-line poem about a clock that counts backward.';
 
 for (let i = 0; i < 100; i++) {
   const message = await client.messages.create({
@@ -141,21 +138,36 @@ for (let i = 0; i < 100; i++) {
     thinking: { type: 'disabled' },
     messages: [{ role: 'user', content: PROMPT }]
   });
-  console.log(message.content[0].text);
 }`}</code></pre>
 		</details>
 		<div class="beat__demo beat__demo--wide">
 			<PoemVarianceDemo />
 		</div>
 		<p class="beat__sub">
-			One question, asked 100 times. <span class="hl">Different poems.</span><br />
 			The rest of tonight is about <span class="hl">why</span>.
 		</p>
 	</section>
 
-	<!-- SKEPTIC #1 — "just the ML reproducibility crisis, old news" -->
+
+	<!-- SKEPTIC #1 — -->
 	<section class="beat">
 		<p class="beat__kicker">Act I · Skeptic #1</p>
+		<h1 class="beat__statement">
+		“You don't understand the technology.“
+		</h1>
+		<p class="beat__sub">
+		“You shouldn't <span class="hl">want</span> deterministic answers - this is a misunderstanding of the technology.“ <br />
+		“Deterministic ai is what we had pre 2017... Funny how people forgot. “<br />
+	    “If you want LLMs to do determinism, you’re not using them properly.“</p>
+		<!-- <p class="beat__sub">
+			Except we set temperature <span class="hl">0</span>. The dice were supposed to be
+			<span class="hl">off</span> — and something rolled them anyway.
+		</p> -->
+	</section>
+
+	<!-- SKEPTIC #2 — "just the ML reproducibility crisis, old news" -->
+	<section class="beat">
+		<p class="beat__kicker">Act I · Skeptic #2</p>
 		<h1 class="beat__statement">
 			“That's just the <span class="hl">reproducibility crisis</span>. Old news.”
 		</h1>
@@ -173,41 +185,17 @@ for (let i = 0; i < 100; i++) {
 		</p>
 	</section>
 
-	<!-- SKEPTIC #2 — "the vendors already confessed, case closed" -->
-	<section class="beat">
-		<p class="beat__kicker">Act I · Skeptic #2</p>
-		<h1 class="beat__statement">“It's in the <span class="hl">docs</span>. Case closed.”</h1>
-		<p class="beat__sub">
-			She reads them aloud. PyTorch, reproducibility note: <em
-				>“Completely reproducible results are not guaranteed across PyTorch releases, individual
-				commits, or different platforms… even when using identical seeds.”</em
-			>
-			OpenAI, on the <span class="mono">seed</span> parameter:
-			<em>“Determinism is not guaranteed.”</em>
-		</p>
-		<p class="beat__sub">
-			<span class="hl">“The vendors confessed years ago. What's left to investigate?”</span><br />
-			A confession is not an <span class="hl">explanation</span>. Not guaranteed —
-			<span class="hl"></span>?
-		</p>
-	</section>
-
-	<!-- SKEPTIC #3 — "variance is the product, determinism doesn't pay" -->
+	<!-- SKEPTIC #3 — "the vendors already confessed, case closed" -->
 	<section class="beat">
 		<p class="beat__kicker">Act I · Skeptic #3</p>
-		<h1 class="beat__statement">
-			“Variety is the <span class="hl">feature</span>. Nobody pays for sameness.”
-		</h1>
+		<h1 class="beat__statement">“GPUs are just <span class="hl">random</span>.”</h1>
 		<p class="beat__sub">
-			“You <em>sample</em> from these models on purpose. And forcing determinism is expensive —
-			deterministic kernels have been clocked at up to <span class="hl">10×</span> slower. Even if
-			you solve the mystery, nobody ships the fix. <span class="hl">Walk away.</span>”
+			Case closed. Accept and move on.
 		</p>
-		<!-- <p class="beat__sub">
-			Except we set temperature <span class="hl">0</span>. The dice were supposed to be
-			<span class="hl">off</span> — and something rolled them anyway.
-		</p> -->
-	</section>
+		<p class="beat__sub">
+			<span class="hl">“The vendors confessed years ago. What's left to investigate?”</span><br/>
+		</p>
+	 </section>
 
 	<!-- THE EVIDENCE -->
 	<section class="beat">
@@ -565,7 +553,7 @@ for out in outputs:
 
 	.beat__statement {
 		margin: 0;
-		font-size: clamp(44px, 6vw, 92px);
+		font-size:clamp(36px, 4.8vw, 74px);
 		line-height: 1.1;
 		font-weight: 800;
 		letter-spacing: -0.015em;
@@ -574,7 +562,7 @@ for out in outputs:
 	}
 
 	.beat__statement--xl {
-		font-size: clamp(52px, 7.4vw, 112px);
+		font-size: clamp(42px, 6vw, 90px);
 	}
 
 	.beat__sub {
