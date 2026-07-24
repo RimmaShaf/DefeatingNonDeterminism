@@ -11,7 +11,6 @@
 	import ExhibitFrame from '$lib/talk/ExhibitFrame.svelte';
 	import BatchInvarianceCostChart from '$lib/components/modules/BatchInvarianceCostChart.svelte';
 	import DemoRecording from '$lib/components/modules/DemoRecording.svelte';
-	import FloatingPointSandbox from '$lib/components/modules/FloatingPointSandbox.svelte';
 	import KernelParallelismSimulator from '$lib/components/modules/KernelParallelismSimulator.svelte';
 	import LiveDeterminismDemo from '$lib/components/modules/LiveDeterminismDemo.svelte';
 	import PoemVarianceDemo from '$lib/components/modules/PoemVarianceDemo.svelte';
@@ -25,7 +24,7 @@
 
 	// Beats are numbered by DOM order — add/move/remove <section class="beat">
 	// freely, just keep TOTAL_BEATS equal to the number of sections.
-	const TOTAL_BEATS = 21;
+	const TOTAL_BEATS = 24;
 
 	// Decorative line-art pattern, used sparingly (cold open + epilogue).
 	const patternStyle = `--pattern: url('${base}/talk-assets/pattern-blue.jpg')`;
@@ -115,6 +114,143 @@
 		</div>
 	</section>
 
+	
+
+
+	<!-- SKEPTICS — three quick objections, one slide -->
+	<section class="beat">
+		<p class="beat__kicker">Act I · The skeptics</p>
+		<h1 class="beat__statement">Three <span class="hl">objections</span>, before we start.</h1>
+		<div class="beat__demo beat__demo--bare beat__demo--wide beat__triad">
+			<div class="skeptic-card">
+				<p class="skeptic-card__quote">
+					“You shouldn't <span class="hl">want</span> deterministic answers.”
+				</p>
+				<p class="skeptic-card__body">
+					“Deterministic AI is what we had pre-2017... funny how people forgot.”<br />
+					“If you want LLMs to do determinism, you're not using them properly.”
+				</p>
+			</div>
+			<div class="skeptic-card">
+				<p class="skeptic-card__quote">
+					“That's just the <span class="hl">reproducibility crisis</span>. Old news.”
+				</p>
+				<p class="skeptic-card__body">
+					<em>“Can Neural Nets Learn the Same Model Twice?”</em> (Somepalli et al., CVPR 2022) —
+					train the same net twice, get visibly different decision boundaries.
+					<span class="hl">“Deep learning rolls dice. Go do something else.”</span>
+				</p>
+			</div>
+			<div class="skeptic-card">
+				<p class="skeptic-card__quote">“GPUs are just <span class="hl">random</span>.”</p>
+				<p class="skeptic-card__body">
+					Case closed. Accept and move on.
+					<span class="hl">“The vendors confessed years ago. But confession is not an explanation.”</span>
+				</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- THE STAKES 1/3 — TRUST -->
+	<section class="beat">
+		<p class="beat__kicker">Act I · What's at stake — Trust</p>
+		<h1 class="beat__statement">Determinism means you can <span class="hl">actually debug it</span>.</h1>
+		<div class="beat__demo beat__demo--bare beat__demo--wide stake-solo">
+			<img
+				class="stake-solo__art"
+				src="{base}/talk-assets/robot-temp0.png"
+				alt="Friendly robot with a factory-reset dial set to temperature 0"
+			/>
+			<div class="stake-solo__body">
+				<p class="stake-solo__caption">
+					Factory reset to <span class="mono">temperature&nbsp;0</span> — replay the exact
+					failure, get the exact same answer, <span class="hl">actually debug it</span>.
+				</p>
+				<ul class="stake-solo__list">
+					<li>
+						A user reports a bad answer. You rerun the same prompt and get something
+						<span class="hl">different</span>. Did you fix it, or just get lucky?
+					</li>
+					<li>
+						Without determinism, “reproduce the bug” stops meaning anything — every rerun is a
+						fresh roll of the dice.
+					</li>
+					<li>
+						Deterministic replay turns “it happened once” into “here's exactly why” — the
+						difference between a war story and a fix.
+					</li>
+				</ul>
+			</div>
+		</div>
+	</section>
+
+	<!-- THE STAKES 2/3 — BENCHMARKS -->
+	<section class="beat">
+		<p class="beat__kicker">Act I · What's at stake — Benchmarks</p>
+		<h1 class="beat__statement">An eval score should be a <span class="hl">fact</span>, not a guess.</h1>
+		<div class="beat__demo beat__demo--bare beat__demo--wide stake-solo">
+			<img
+				class="stake-solo__art"
+				src="{base}/talk-assets/bf16-aime24-boxplot.png"
+				alt="Box plot: AIME'24 accuracy of four models varies run to run under BFloat16"
+			/>
+			<div class="stake-solo__body">
+				<p class="stake-solo__caption">
+					Same model, same questions — and accuracy is a <span class="hl">box plot</span>.
+					Determinism makes an eval score a fact, not a distribution.
+				</p>
+				<ul class="stake-solo__list">
+					<li>
+						Leaderboards report a single number. Underneath, that number moved every time
+						someone reran the benchmark.
+					</li>
+					<li>
+						Two models a point apart on a leaderboard might just be two draws from
+						<span class="hl">overlapping distributions</span>.
+					</li>
+					<li>
+						Non-determinism doesn't just add noise — it erodes what “state of the art” is even
+						supposed to mean.
+					</li>
+				</ul>
+				<p class="stake-solo__source">“Give Me FP32 or Give Me Death?” · Yuan et al., 2025</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- THE STAKES 3/3 — SAFETY-CRITICAL -->
+	<section class="beat">
+		<p class="beat__kicker">Act I · What's at stake — Safety-critical</p>
+		<h1 class="beat__statement">Same scan, <span class="hl">same answer</span>, every time.</h1>
+		<div class="beat__demo beat__demo--bare beat__demo--wide stake-solo">
+			<img
+				class="stake-solo__art"
+				src="{base}/talk-assets/medical_brain.jpg"
+				alt="Medical AI device analyzing a brain scan"
+			/>
+			<div class="stake-solo__body">
+				<p class="stake-solo__caption">
+					A diagnostic model on a hospital device: same scan, <span class="hl">same answer,
+					every run</span>. It could at least be run-to-run deterministic.
+				</p>
+				<ul class="stake-solo__list">
+					<li>
+						Regulatory approval assumes a fixed, auditable pipeline — not one that quietly
+						reshuffles floating-point operations under load.
+					</li>
+					<li>
+						“The model said something different on the retest” is not an answer a clinician —
+						or a court — will accept.
+					</li>
+					<li>
+						Run-to-run determinism doesn't make a model <span class="hl">correct</span>. It makes
+						it <span class="hl">accountable</span>.
+					</li>
+				</ul>
+			</div>
+		</div>
+	</section>
+
 	<!-- LIVE EVIDENCE — 100× to the cloud, temperature 0 -->
 	<section class="beat">
 		<p class="beat__kicker">Act I · Live evidence</p>
@@ -148,75 +284,14 @@ for (let i = 0; i < 100; i++) {
 		</p>
 	</section>
 
-
-	<!-- SKEPTIC #1 — -->
-	<section class="beat">
-		<p class="beat__kicker">Act I · Skeptic #1</p>
-		<h1 class="beat__statement">
-		“You don't understand the technology.“
-		</h1>
-		<p class="beat__sub">
-		“You shouldn't <span class="hl">want</span> deterministic answers - this is a misunderstanding of the technology.“ <br />
-		“Deterministic ai is what we had pre 2017... Funny how people forgot. “<br />
-	    “If you want LLMs to do determinism, you’re not using them properly.“</p>
-		<!-- <p class="beat__sub">
-			Except we set temperature <span class="hl">0</span>. The dice were supposed to be
-			<span class="hl">off</span> — and something rolled them anyway.
-		</p> -->
-	</section>
-
-	<!-- SKEPTIC #2 — "just the ML reproducibility crisis, old news" -->
-	<section class="beat">
-		<p class="beat__kicker">Act I · Skeptic #2</p>
-		<h1 class="beat__statement">
-			“That's just the <span class="hl">reproducibility crisis</span>. Old news.”
-		</h1>
-		<p class="beat__sub">
-			 <em>“Can Neural Nets Learn the Same Model Twice?”</em> (Somepalli et al.,
-			CVPR 2022) — train the same net twice, get visibly different decision boundaries. Retrain a
-			GraphSAGE GNN with nothing changed but the seed, and the embeddings reshuffle (Schumacher et
-			al.). <span class="hl">“Deep learning rolls dice. Go do something else.”</span>
-		</p>
-		<!-- <div class="beat__demo beat__demo--bare beat__demo--wide">
-			<TrainingVsInference />
-		</div> -->
-		<p class="beat__sub">
-			<!-- He's right — about <span class="hl">training</span>. But nobody trained anything tonight. -->
-		</p>
-	</section>
-
-	<!-- SKEPTIC #3 — "the vendors already confessed, case closed" -->
-	<section class="beat">
-		<p class="beat__kicker">Act I · Skeptic #3</p>
-		<h1 class="beat__statement">“GPUs are just <span class="hl">random</span>.”</h1>
-		<p class="beat__sub">
-			Case closed. Accept and move on.
-		</p>
-		<p class="beat__sub">
-			<span class="hl">“The vendors confessed years ago. What's left to investigate?”</span><br/>
-		</p>
-	 </section>
-
 	<!-- THE EVIDENCE -->
 	<section class="beat">
 		<p class="beat__kicker">Act I · On the record</p>
-		<h1 class="beat__statement">The weights <span class="hl">never change</span>.</h1>
+		<h2 class="beat__statement">The weights <span class="hl">never change</span>.</h2>
 		<div class="beat__demo beat__demo--bare beat__demo--wide">
 			<WeightsFileGag />
 		</div>
 		<p class="beat__sub">I downloaded gemma4 weights. It is a file of numbers. Frozen. So who's changing the answer?</p>
-	</section>
-
-	<!-- THE LAZY ANSWER -->
-	<section class="beat">
-		<p class="beat__kicker">Act I · The official line</p>
-		<h1 class="beat__statement">
-			<span class="strike">“GPUs are just&nbsp;random.”</span>
-		</h1>
-		<p class="beat__sub">
-			The internet's favorite explanation: <em>“concurrency + floating point.”</em><br />
-			<!-- Too convenient. Tonight we fact-check it properly. -->
-		</p>
 	</section>
 
 	<!-- ═══════════ ACT II · THE MECHANISM ═══════════ -->
@@ -224,9 +299,9 @@ for (let i = 0; i < 100; i++) {
 	<!-- FIRST CRACK — 0.1 + 0.2, live Python -->
 	<section class="beat">
 		<p class="beat__kicker">Act II · The first crack</p>
-		<h1 class="beat__statement">
-			<span class="mono">0.1 + 0.2</span> isn't even <span class="hl">0.3</span>.
-		</h1>
+		<h2 class="beat__statement">
+			<span class="mono">What is <span class="hl"> 0.1 + 0.2</span> ?</span>
+		</h2>
 		<div class="beat__demo beat__demo--bare beat__demo--wide">
 			<ExhibitFrame
 				src="/talk-embeds/python-terminal.html"
@@ -235,9 +310,63 @@ for (let i = 0; i < 100; i++) {
 			/>
 		</div>
 		<p class="beat__sub">
-			Binary floats can't write 0.1 exactly — the same way decimal can't write ⅓. If the
-			arithmetic lies on a kindergarten sum, what did you expect from
-			<span class="hl">ten billion additions</span>?
+			Real numbers can't be faithfully represented with floating point arithmetics.
+		</p>
+	</section>
+
+	<!-- UNDER THE HOOD — how a float is actually stored -->
+	<section class="beat">
+		<p class="beat__kicker">Act II · Under the hood</p>
+		<h3 class="beat__statement">Real numbers can't be faithfully represented with <span class="hl">floating point</span> arithmetics.</h3>
+		<div class="beat__demo beat__demo--bare fp-anatomy">
+			<p class="fp-anatomy__formula">
+				value = <span class="fp-s">±1</span> · 2<sup><span class="fp-e">E−1023</span></sup> ·
+				<span class="fp-m">1.mantissa</span>
+			</p>
+			<div class="fp-anatomy__layout">
+				<div class="fp-seg fp-seg--s">1<span>sign</span></div>
+				<div class="fp-seg fp-seg--e">11<span>exponent</span></div>
+				<div class="fp-seg fp-seg--m">52<span>mantissa</span></div>
+			</div>
+			<p class="fp-anatomy__note">
+				float64 — the default in Python, JavaScript, NumPy. 52 mantissa bits, then the cliff.
+			</p>
+			<div class="fp-anatomy__expansion mono">
+				0.1&nbsp;=&nbsp;0.<span class="fp-kept"
+					>0001100110011001100110011001100110011001100110011001100</span
+				><span class="fp-edge"></span><span class="fp-lost">110011001100… forever</span>
+			</div>
+			<p class="fp-anatomy__note">
+				In binary, 0.1 repeats <span class="hl">forever</span> — like ⅓ in decimal. The register
+				keeps 52 bits and rounds: what's stored is
+				<span class="mono">0.10000000000000000555…</span>
+			</p>
+			<div class="fp-anatomy__sum mono">
+				0.1 + 0.2 = <span class="fp-lost-strong">0.30000000000000004</span>
+			</div>
+		</div>
+		<p class="beat__sub">
+			Two rounded inputs, one rounded sum — one wrong answer.<br />
+			<span class="hl">Has it caused trouble before?</span>
+		</p>
+	</section>
+
+	<!-- CASE FILE — the Patriot clock, 1991 -->
+	<section class="beat">
+		<p class="beat__kicker">Act II · Case file, 1991</p>
+		<h1 class="beat__statement">The clock that <span class="hl">chopped 0.1</span>.</h1>
+		<div class="beat__demo beat__demo--bare beat__demo--wide">
+			<ExhibitFrame
+				src="/talk-embeds/patriot-clock.html"
+				title="The Patriot bug — 0.1 is not a binary number"
+			/>
+		</div>
+		<p class="beat__sub">
+			The Patriot's 24-bit register chopped 0.1's infinite tail — losing
+			<span class="mono">9.5×10⁻⁸ s</span> every tick,
+			<span class="hl">always in the same direction</span>, ten times a second. After 100 hours
+			of uptime the clock was 0.34 s slow, and the radar's range gate looked half a kilometer
+			from the target. 28 people died of a truncation error.
 		</p>
 	</section>
 
@@ -263,10 +392,51 @@ for (let i = 0; i < 100; i++) {
 			Floating-point addition is <span class="hl">not associative</span>. At 2048, fp16's gap
 			between representable numbers is 2 — add a 1 and it simply <span class="hl">disappears</span>.
 		</p>
-		<div class="beat__demo beat__demo--wide">
-			<FloatingPointSandbox />
+		<div class="beat__demo beat__demo--bare beat__demo--wide">
+			<ExhibitFrame
+				src="/talk-embeds/fp-grid.html"
+				title="100 shuffled sums of the same 8 numbers, each mathematically zero"
+			/>
 		</div>
 	</section>
+
+	<!-- ATOMIC ADD — guarantees delivery, not order -->
+	<section class="beat">
+		<p class="beat__kicker">Act II · Under the hood</p>
+		<h1 class="beat__statement">
+			Atomic add guarantees <span class="hl">delivery</span>, not <span class="hl">order</span>.
+		</h1>
+		<p class="beat__sub">
+			When many cores must accumulate into one shared value, the kernel reaches for an
+			<span class="mono">atomic add</span>. It guarantees every core's contribution lands — it makes
+			<span class="hl">no promise about the order</span> they arrive in.
+		</p>
+		<div class="beat__demo beat__demo--bare beat__demo--wide">
+			<ExhibitFrame
+				src="/talk-embeds/fp-atomic-add.html"
+				title="Atomic add — same 8 numbers, a different arrival order every race"
+			/>
+		</div>
+		<p class="beat__sub">
+			Same 8 numbers as the mosaic. Which core finishes first is a
+			<span class="hl">hardware scheduling</span> detail — and floating-point addition isn't
+			associative, so a different arrival order can round to a <span class="hl">different sum</span>.
+		</p>
+	</section>
+
+		
+	<!-- THE TWIST — the math alone checks out -->
+	<section class="beat">
+		<p class="beat__kicker">Act II · The twist</p>
+		<h1 class="beat__statement">However, the forward pass of an LLM involves no operations that require atomic adds. 
+			The forward pass in an LLM is in fact <span class="hl">“run-to-run deterministic”</span>
+
+</h1>
+		<p class="beat__sub">
+			
+		</p>
+	</section>
+
 
 	<!-- THE TWIST — the math alone checks out -->
 	<section class="beat">
@@ -367,14 +537,14 @@ for (let i = 0; i < 100; i++) {
 	</section>
 
 	<!-- TONIGHT, AT HOME -->
-	<section class="beat">
+	<!-- <section class="beat">
 		<p class="beat__kicker">Act IV · Tonight, at home</p>
 		<h1 class="beat__statement">Determinism on <span class="hl">your laptop</span>.</h1>
 		<div class="beat__demo beat__demo--wide">
 			<DemoRecording />
 		</div>
 		<p class="beat__sub mono">scripts/ollama-demo.sh — diverge, pin, sha256 match.</p>
-	</section>
+	</section> -->
 
 	<!-- LIVE, LOCAL — not a recording -->
 	<!-- <section class="beat">
@@ -625,6 +795,241 @@ for out in outputs:
 
 	.beat__demo--wide:not(.beat__demo--bare) {
 		width: calc(var(--demo-width-wide) / var(--demo-zoom));
+	}
+
+	.beat__triad {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 28px;
+		align-items: stretch;
+	}
+
+	.stake-solo {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		gap: 40px;
+		align-items: center;
+	}
+
+	.stake-solo__art {
+		width: 100%;
+		max-height: 56vh;
+		object-fit: contain;
+		border-radius: 16px;
+	}
+
+	.stake-solo__body {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		text-align: left;
+		gap: 18px;
+	}
+
+	.stake-solo__caption {
+		margin: 0;
+		font-size: clamp(18px, 1.8vw, 25px);
+		line-height: 1.45;
+		color: #3c4f78;
+	}
+
+	.stake-solo__list {
+		margin: 0;
+		padding-left: 1.2em;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		font-size: clamp(14px, 1.3vw, 18px);
+		line-height: 1.6;
+		color: var(--muted);
+	}
+
+	.stake-solo__source {
+		margin: 0;
+		font-size: clamp(12px, 1vw, 15px);
+		color: var(--muted);
+	}
+
+	@media (max-width: 1100px) {
+		.stake-solo {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (max-width: 1100px) {
+		.beat__triad {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.skeptic-card {
+		background: #ffffff;
+		border-radius: 18px;
+		box-shadow:
+			0 0 0 1px var(--line),
+			0 18px 44px rgba(23, 58, 110, 0.08);
+		padding: 26px 24px;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		text-align: left;
+		gap: 14px;
+	}
+
+	.skeptic-card__quote {
+		margin: 0;
+		font-size: clamp(19px, 1.8vw, 25px);
+		font-weight: 700;
+		line-height: 1.35;
+		color: var(--heading);
+	}
+
+	.skeptic-card__body {
+		margin: 0;
+		font-size: clamp(14px, 1.25vw, 18px);
+		line-height: 1.6;
+		color: var(--muted);
+	}
+
+	/* FP anatomy — sign/exponent/mantissa "cubes", palette and 3D shelf
+	   shadow borrowed from static/talk-embeds/fp-cubes.html so this static
+	   float64 diagram reads as the same visual language as Exhibit A. */
+	.fp-anatomy {
+		--fp-sign: #a63d8f;
+		--fp-sign-bg1: #f0b3e0;
+		--fp-sign-bg2: #d98cc5;
+		--fp-exp: #1e63b8;
+		--fp-exp-bg1: #9ec7f0;
+		--fp-exp-bg2: #6ba3dd;
+		--fp-mant: #1d7a43;
+		--fp-mant-bg1: #9fdcb4;
+		--fp-mant-bg2: #6fc08d;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 22px;
+		width: min(880px, 92vw);
+	}
+
+	.fp-anatomy__formula {
+		margin: 0;
+		font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+		font-style: italic;
+		font-size: clamp(24px, 2.6vw, 36px);
+		color: var(--heading);
+	}
+
+	.fp-s {
+		color: var(--fp-sign);
+	}
+
+	.fp-e {
+		color: var(--fp-exp);
+	}
+
+	.fp-m {
+		color: var(--fp-mant);
+	}
+
+	.fp-anatomy__layout {
+		display: flex;
+		align-items: flex-end;
+		gap: 10px;
+	}
+
+	.fp-seg {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 4px;
+		border-radius: 14%;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-weight: 800;
+		font-size: clamp(18px, 2vw, 26px);
+		box-shadow:
+			inset 0 0.25em 0 rgba(255, 255, 255, 0.4),
+			inset 0 -0.25em 0 rgba(0, 0, 0, 0.28),
+			0 0.28em 0 rgba(0, 0, 0, 0.32);
+	}
+
+	.fp-seg span {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-weight: 700;
+		font-size: clamp(10px, 1vw, 13px);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		opacity: 0.85;
+	}
+
+	.fp-seg--s {
+		width: clamp(64px, 7vw, 84px);
+		height: clamp(64px, 7vw, 84px);
+		background: linear-gradient(145deg, var(--fp-sign-bg1), var(--fp-sign-bg2));
+		color: var(--fp-sign);
+	}
+
+	.fp-seg--e {
+		width: clamp(96px, 10vw, 128px);
+		height: clamp(80px, 8.5vw, 104px);
+		background: linear-gradient(145deg, var(--fp-exp-bg1), var(--fp-exp-bg2));
+		color: #0d2c55;
+	}
+
+	.fp-seg--m {
+		width: clamp(180px, 20vw, 260px);
+		height: clamp(96px, 10vw, 124px);
+		background: linear-gradient(145deg, var(--fp-mant-bg1), var(--fp-mant-bg2));
+		color: #0c3d22;
+	}
+
+	.fp-anatomy__note {
+		margin: 0;
+		font-size: clamp(15px, 1.5vw, 19px);
+		line-height: 1.5;
+		color: var(--muted);
+		max-width: 62ch;
+		text-align: center;
+	}
+
+	.fp-anatomy__expansion {
+		font-size: clamp(16px, 1.7vw, 22px);
+		background: var(--panel);
+		border: 1px solid var(--line);
+		border-radius: 12px;
+		padding: 12px 20px;
+	}
+
+	.fp-kept {
+		color: var(--ink);
+	}
+
+	.fp-edge {
+		display: inline-block;
+		width: 2px;
+		height: 1em;
+		vertical-align: middle;
+		margin: 0 3px;
+		background: var(--red);
+		box-shadow: 0 0 6px rgba(214, 69, 61, 0.5);
+	}
+
+	.fp-lost {
+		color: var(--red);
+		opacity: 0.75;
+	}
+
+	.fp-anatomy__sum {
+		font-size: clamp(20px, 2.1vw, 28px);
+		background: var(--panel);
+		border: 1px solid var(--line);
+		border-radius: 12px;
+		padding: 10px 22px;
+	}
+
+	.fp-lost-strong {
+		color: var(--red);
+		font-weight: 800;
 	}
 
 	.beat__code {

@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Floating Point Non-Associativity: The Mosaic</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a0f;
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+    overflow-x: hidden;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 28px;
+    max-width: 760px;
+  }
+
+  h1 {
+    font-size: 2.4rem;
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    color: #fff;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .subtitle {
+    font-size: 1.05rem;
+    color: #aaa;
+    letter-spacing: 0.06em;
+    line-height: 1.8;
+  }
+
+  .highlight { color: #f0c060; }
+
+  .numbers-row {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .numbers-row .num-label {
+    width: 100%;
+    font-size: 0.75rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  .numbers-row .num-chip {
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 6px 14px;
+    border-radius: 6px;
+    background: #1a1a2a;
+    border: 1px solid #333;
+  }
+
+  .numbers-row .num-chip.pos { color: #6fd0ff; border-color: #2a5878; }
+  .numbers-row .num-chip.neg { color: #f0c060; border-color: #7a6428; }
+
+  .grid-wrap {
+    position: relative;
+  }
+
+  #grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 2px;
+    width: min(50vw, 360px);
+    aspect-ratio: 1;
+  }
+
+  .cell {
+    border-radius: 3px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.4rem;
+    color: rgba(0,0,0,0.75);
+    font-weight: bold;
+    transition: background-color 0.08s ease;
+    overflow: hidden;
+    padding: 1px;
+    cursor: default;
+    user-select: none;
+  }
+
+  .cell .val {
+    font-size: 0.34rem;
+    letter-spacing: 0;
+    opacity: 0.85;
+    word-break: break-all;
+    text-align: center;
+    line-height: 1.1;
+  }
+
+  .cell.flash {
+    filter: brightness(1.4);
+  }
+
+  #stats {
+    margin-top: 22px;
+    display: flex;
+    gap: 32px;
+    font-size: 0.95rem;
+    color: #aaa;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .stat-block { text-align: center; }
+  .stat-label { font-size: 0.75rem; color: #777; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .stat-val { color: #e0e0e0; font-size: 1.05rem; }
+  .stat-delta { color: #f0c060; }
+
+  #controls {
+    margin-top: 24px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  button {
+    padding: 12px 32px;
+    border: 1px solid #444;
+    background: #1a1a2a;
+    color: #e0e0e0;
+    font-family: inherit;
+    font-size: 1rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+  button:hover { border-color: #888; background: #252535; }
+  button.active { border-color: #f0c060; color: #f0c060; }
+
+  .speed-label {
+    font-size: 0.9rem;
+    color: #888;
+  }
+
+  input[type=range] {
+    accent-color: #f0c060;
+    width: 100px;
+  }
+
+  #explanation {
+    margin-top: 28px;
+    max-width: 640px;
+    font-size: 0.92rem;
+    color: #777;
+    text-align: center;
+    line-height: 1.9;
+  }
+
+  #histogram-wrap {
+    margin-top: 24px;
+    width: min(60vw, 420px);
+  }
+
+  #histogram-title {
+    font-size: 0.78rem;
+    color: #777;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  #histogram {
+    width: 100%;
+    height: 120px;
+    display: block;
+    background: #10101a;
+    border-radius: 4px;
+  }
+
+  .frame-counter {
+    font-size: 0.75rem;
+    color: #555;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <!-- <h1>The Non-Determinism Mosaic</h1> -->
+  <p class="subtitle">
+   Each cell sums the <span class="highlight">same 8 numbers</span> — four magnitudes and their negatives — in a different random order.<br>
+    The exact answer is <span class="highlight">zero</span>.
+  </p>
+  <div class="numbers-row" id="numbers-row">
+    <div class="num-label">The numbers being added, in a random order every time:</div>
+  </div>
+</header>
+
+<div class="grid-wrap">
+  <div id="grid"></div>
+</div>
+
+<div id="stats">
+  <div class="stat-block">
+    <div class="stat-label">Min sum seen</div>
+    <div class="stat-val" id="stat-min">—</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-label">Max sum seen</div>
+    <div class="stat-val" id="stat-max">—</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-label">Spread (Δ)</div>
+    <div class="stat-val stat-delta" id="stat-delta">—</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-label">Distinct values</div>
+    <div class="stat-val" id="stat-distinct">0</div>
+  </div>
+</div>
+
+<div id="histogram-wrap">
+  <div id="histogram-title">Distribution of sums (colored as in the grid above)</div>
+  <canvas id="histogram"></canvas>
+</div>
+
+<div id="controls">
+  <button id="btn-go">▶ GO</button>
+  <button id="btn-reset">↺ RESET</button>
+  <span class="speed-label">Speed</span>
+  <input type="range" id="speed" min="1" max="60" value="5">
+  <span class="speed-label" id="speed-val">20 fps</span>
+</div>
+
+<div id="explanation">
+  Each cell shuffles [1e-10, 1e-5, 1e-2, 1, -1e-10, -1e-5, -1e-2, -1] independently and sums it.
+  Mathematically the terms cancel exactly to 0. In float64, the order in which tiny magnitudes
+  meet huge ones decides how much precision gets silently eaten. The
+  <span style="color:#f0c060">color</span> encodes deviation from zero within the observed range.
+</div>
+
+<script>
+// ── Numbers: four magnitudes spanning 11 orders of size, plus their negatives.
+// Exact sum is 0 — any nonzero result is pure floating-point cancellation error.
+const BASE = [1e-10, 1e-5, 1e-2, 1];
+const NUMS = BASE.concat(BASE.map(v => -v));
+
+const N = NUMS.length; // 8
+
+// ── Render the operands at the top so the audience sees exactly what's being summed
+function fmtOperand(n) {
+  const sign = n < 0 ? '-' : '+';
+  const mag = Math.abs(n);
+  const label = mag >= 1 ? String(mag) : '1e-' + Math.round(-Math.log10(mag));
+  return sign + label;
+}
+const numbersRow = document.getElementById('numbers-row');
+for (const n of NUMS) {
+  const chip = document.createElement('span');
+  chip.className = 'num-chip ' + (n < 0 ? 'neg' : 'pos');
+  chip.textContent = fmtOperand(n);
+  numbersRow.appendChild(chip);
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = (Math.random() * (i + 1)) | 0;
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+function naiveSum(arr) {
+  let s = 0;
+  for (let i = 0; i < arr.length; i++) s += arr[i];
+  return s;
+}
+
+// ── State
+const CELLS = 100;
+let running = false;
+let globalMin = Infinity;
+let globalMax = -Infinity;
+let lastFrameTime = 0;
+let targetFps = 5;
+let animId = null;
+
+// ── Histogram: keep a rolling window of all sums observed
+const HIST_MAX_SAMPLES = 5000;
+const BIN_COUNT = 40;
+let allSums = [];
+// Cumulative across the whole run (not windowed like allSums) — only ever grows,
+// so it reflects the total count of unique sums seen since the last Reset.
+let distinctSums = new Set();
+const histCanvas = document.getElementById('histogram');
+const histCtx = histCanvas.getContext('2d');
+
+function recordSum(s) {
+  allSums.push(s);
+  distinctSums.add(s);
+  if (allSums.length > HIST_MAX_SAMPLES) allSums.shift();
+}
+
+function drawHistogram() {
+  const dpr = window.devicePixelRatio || 1;
+  const w = histCanvas.clientWidth;
+  const h = histCanvas.clientHeight;
+  if (histCanvas.width !== w * dpr || histCanvas.height !== h * dpr) {
+    histCanvas.width = w * dpr;
+    histCanvas.height = h * dpr;
+  }
+  histCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  histCtx.clearRect(0, 0, w, h);
+
+  if (allSums.length === 0 || globalMax === globalMin) return;
+
+  const range = globalMax - globalMin;
+  const bins = new Array(BIN_COUNT).fill(0);
+  for (const s of allSums) {
+    let idx = Math.floor(((s - globalMin) / range) * BIN_COUNT);
+    if (idx < 0) idx = 0;
+    if (idx >= BIN_COUNT) idx = BIN_COUNT - 1;
+    bins[idx]++;
+  }
+
+  const maxCount = Math.max(...bins, 1);
+  const barW = w / BIN_COUNT;
+
+  for (let i = 0; i < BIN_COUNT; i++) {
+    const count = bins[i];
+    if (count === 0) continue;
+    const barH = (count / maxCount) * (h - 4);
+    // Color the bar by the value it represents, using the same hue mapping as the grid
+    const binValue = globalMin + ((i + 0.5) / BIN_COUNT) * range;
+    const hue = sumToHue(binValue);
+    histCtx.fillStyle = `hsl(${hue.toFixed(1)}, 80%, 48%)`;
+    histCtx.fillRect(i * barW + 0.5, h - barH, Math.max(barW - 1, 1), barH);
+  }
+}
+
+// ── DOM
+const grid = document.getElementById('grid');
+const cells = [];
+
+for (let i = 0; i < CELLS; i++) {
+  const div = document.createElement('div');
+  div.className = 'cell';
+  div.innerHTML = '<div class="val">—</div>';
+  grid.appendChild(div);
+  cells.push(div);
+}
+
+// ── Warmup: collect 300 sums to establish min/max range
+function warmup() {
+  for (let i = 0; i < 300; i++) {
+    const s = naiveSum(shuffle(NUMS));
+    if (s < globalMin) globalMin = s;
+    if (s > globalMax) globalMax = s;
+    recordSum(s);
+  }
+}
+warmup();
+
+// ── Color mapping: sum → hue (0..300, avoiding red-wrap)
+function sumToHue(s) {
+  const range = globalMax - globalMin;
+  if (range === 0) return 180;
+  const t = Math.max(0, Math.min(1, (s - globalMin) / range));
+  return t * 300; // blue(240)→green(120)→yellow(60)
+}
+
+function updateCell(idx) {
+  const arr = shuffle(NUMS);
+  const s = naiveSum(arr);
+  if (s < globalMin) globalMin = s;
+  if (s > globalMax) globalMax = s;
+  recordSum(s);
+
+  const hue = sumToHue(s);
+  const cell = cells[idx];
+  cell.style.backgroundColor = `hsl(${hue.toFixed(1)}, 80%, 48%)`;
+
+  // Show last 8 significant digits
+  const str = s.toPrecision(16);
+  const valEl = cell.querySelector('.val');
+  valEl.textContent = str.slice(-8);
+
+  return s;
+}
+
+function renderFrame(ts) {
+  if (!running) return;
+
+  const interval = 1000 / targetFps;
+  if (ts - lastFrameTime < interval) {
+    animId = requestAnimationFrame(renderFrame);
+    return;
+  }
+  lastFrameTime = ts;
+
+  // Update all cells
+  for (let i = 0; i < CELLS; i++) {
+    updateCell(i);
+  }
+
+  // Update stats
+  document.getElementById('stat-min').textContent = globalMin.toPrecision(16);
+  document.getElementById('stat-max').textContent = globalMax.toPrecision(16);
+  const delta = globalMax - globalMin;
+  document.getElementById('stat-delta').textContent = delta.toExponential(3);
+  document.getElementById('stat-distinct').textContent = distinctSums.size;
+  drawHistogram();
+
+  animId = requestAnimationFrame(renderFrame);
+}
+
+// ── Controls
+const btnGo = document.getElementById('btn-go');
+const btnReset = document.getElementById('btn-reset');
+const speedInput = document.getElementById('speed');
+const speedVal = document.getElementById('speed-val');
+
+btnGo.addEventListener('click', () => {
+  running = !running;
+  if (running) {
+    btnGo.textContent = '⏸ PAUSE';
+    btnGo.classList.add('active');
+    animId = requestAnimationFrame(renderFrame);
+  } else {
+    btnGo.textContent = '▶ GO';
+    btnGo.classList.remove('active');
+    if (animId) cancelAnimationFrame(animId);
+  }
+});
+
+btnReset.addEventListener('click', () => {
+  running = false;
+  btnGo.textContent = '▶ GO';
+  btnGo.classList.remove('active');
+  if (animId) cancelAnimationFrame(animId);
+  globalMin = Infinity;
+  globalMax = -Infinity;
+  allSums = [];
+  distinctSums = new Set();
+  warmup();
+  cells.forEach(c => {
+    c.style.backgroundColor = '#1a1a2a';
+    c.querySelector('.val').textContent = '—';
+  });
+  document.getElementById('stat-min').textContent = '—';
+  document.getElementById('stat-max').textContent = '—';
+  document.getElementById('stat-delta').textContent = '—';
+  document.getElementById('stat-distinct').textContent = distinctSums.size;
+  drawHistogram();
+});
+
+speedInput.addEventListener('input', () => {
+  targetFps = parseInt(speedInput.value);
+  speedVal.textContent = `${targetFps} fps`;
+});
+
+// ── Initial state: same as pressing RESET (warmed up, but grid/stats blank)
+cells.forEach(c => {
+  c.style.backgroundColor = '#1a1a2a';
+  c.querySelector('.val').textContent = '—';
+});
+document.getElementById('stat-min').textContent = '—';
+document.getElementById('stat-max').textContent = '—';
+document.getElementById('stat-delta').textContent = '—';
+document.getElementById('stat-distinct').textContent = distinctSums.size;
+drawHistogram();
+window.addEventListener('resize', drawHistogram);
+</script>
+</body>
+</html>

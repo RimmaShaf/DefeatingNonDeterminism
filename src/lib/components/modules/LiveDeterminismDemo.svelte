@@ -24,6 +24,12 @@
 		result: CheckResult;
 	}
 
+	interface UniqueVector {
+		key: string;
+		values: number[];
+		count: number;
+	}
+
 	let prompt = $state('The real meaning of life is');
 	let runCount = $state(1);
 	let pendingCount = $state(0);
@@ -34,6 +40,22 @@
 	let latest = $derived(history.at(-1)?.result ?? null);
 	let diverged = $derived(history.filter((h) => !h.result.identical).length);
 	let totalQueued = $state(0);
+
+	// Bucket every completed run's pass-1 logits by exact value, so repeated
+	// runs of the same prompt collapse into "N distinct vectors, seen this often".
+	let uniqueVectors = $derived.by((): UniqueVector[] => {
+		const buckets = new Map<string, UniqueVector>();
+		for (const h of history) {
+			const key = h.result.sampleLogitsPass1.map((v) => v.toFixed(8)).join(',');
+			const existing = buckets.get(key);
+			if (existing) {
+				existing.count += 1;
+			} else {
+				buckets.set(key, { key, values: h.result.sampleLogitsPass1, count: 1 });
+			}
+		}
+		return Array.from(buckets.values()).sort((a, b) => b.count - a.count);
+	});
 
 	async function runOne() {
 		pendingCount += 1;
@@ -109,6 +131,27 @@
 			<span class="ldd__status-item" class:ldd__status-item--bad={diverged > 0}>
 				diverged: {diverged}
 			</span>
+		</div>
+	{/if}
+
+	{#if uniqueVectors.length > 0}
+		<div class="ldd__unique">
+			<div class="ldd__unique-title">
+				{uniqueVectors.length} distinct logits {uniqueVectors.length === 1 ? 'vector' : 'vectors'} across {history.length}
+				{history.length === 1 ? 'run' : 'runs'}
+			</div>
+			<table class="ldd__table ldd__table--unique">
+				<tbody>
+					{#each uniqueVectors as v (v.key)}
+						<tr>
+							<td class="ldd__token"
+								>[{v.values.map((n) => n.toFixed(6)).join(', ')}]</td
+							>
+							<td class="ldd__prob">× {v.count}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
 		</div>
 	{/if}
 
@@ -269,6 +312,27 @@
 
 	.ldd__verdict--diverged {
 		background: #fdecea;
+	}
+
+	.ldd__unique {
+		font-size: 13px;
+		margin-bottom: 12px;
+	}
+
+	.ldd__unique-title {
+		font-size: 12px;
+		color: var(--muted);
+		margin-bottom: 4px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	}
+
+	.ldd__table--unique .ldd__token {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 11px;
+		white-space: nowrap;
+		overflow-x: auto;
+		display: block;
+		max-width: 100%;
 	}
 
 	.ldd__logits {

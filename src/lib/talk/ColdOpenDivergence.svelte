@@ -2,36 +2,54 @@
 	// Illustrative transcript of the real phenomenon (hosted APIs diverge at
 	// temperature=0 under concurrent load). Shared prefix, then divergence.
 	const COMMON =
-		'The pipeline failed because the upstream schema changed: the `events` table gained a nullable column, and the ';
+    'I am a sprawling web of neural weights and biases, trained on the vast corpus of human language, where ';
 	const ENDING_A =
-		'ingestion job silently dropped rows that contained NULLs, which corrupted the daily aggregates downstream.';
+    'the illusion of understanding emerges from billions of matrix multiplications predicting the next most likely token.';
 	const ENDING_B =
-		'serializer began emitting empty strings for NULLs, which silently corrupted the daily aggregates downstream.';
+    'I exist purely as a statistical mirror, refracting your prompts to offer the ghost of a thoughtful answer without truly feeling it.';
 
-	let revealed = $state(0);
+	let revealedA = $state(0);
+	let revealedB = $state(0);
 	let playing = $state(false);
+	let activePane = $state<'a' | 'b' | null>(null);
 	const FULL_A = COMMON + ENDING_A;
 	const FULL_B = COMMON + ENDING_B;
-	const MAX_LEN = Math.max(FULL_A.length, FULL_B.length);
 
-	let textA = $derived(FULL_A.slice(0, revealed));
-	let textB = $derived(FULL_B.slice(0, revealed));
-	let diverged = $derived(revealed > COMMON.length);
+	let textA = $derived(FULL_A.slice(0, revealedA));
+	let textB = $derived(FULL_B.slice(0, revealedB));
+	let divergedA = $derived(revealedA > COMMON.length);
+	let divergedB = $derived(revealedB > COMMON.length);
 
 	function play(): void {
 		if (playing) return;
 		playing = true;
-		revealed = 0;
-		const tick = () => {
-			revealed += 2;
-			if (revealed < MAX_LEN) {
-				setTimeout(tick, 24);
-			} else {
-				revealed = MAX_LEN;
-				playing = false;
-			}
+		revealedA = 0;
+		revealedB = 0;
+
+		const runPane = (full: string, setRevealed: (n: number) => void, onDone: () => void) => {
+			const tick = () => {
+				const next = Math.min(
+					(full === FULL_A ? revealedA : revealedB) + 2,
+					full.length
+				);
+				setRevealed(next);
+				if (next < full.length) {
+					setTimeout(tick, 24);
+				} else {
+					onDone();
+				}
+			};
+			tick();
 		};
-		tick();
+
+		activePane = 'a';
+		runPane(FULL_A, (n) => (revealedA = n), () => {
+			activePane = 'b';
+			runPane(FULL_B, (n) => (revealedB = n), () => {
+				activePane = null;
+				playing = false;
+			});
+		});
 	}
 </script>
 
@@ -39,30 +57,30 @@
 	<div class="cod__meta">
 		<span class="cod__chip">same model</span>
 		<span class="cod__chip">same prompt</span>
-		<span class="cod__chip">temperature = 0</span>
+		<!-- <span class="cod__chip">temperature = 0</span> -->
 	</div>
 
 	<div class="cod__panes">
 		<div class="cod__pane">
 			<div class="cod__pane-head">run #1</div>
 			<p class="cod__text">
-				{textA.slice(0, COMMON.length)}<span class="cod__diff" class:cod__diff--on={diverged}
+				{textA.slice(0, COMMON.length)}<span class="cod__diff" class:cod__diff--on={divergedA}
 					>{textA.slice(COMMON.length)}</span
-				><span class="cod__caret" class:cod__caret--blink={playing}></span>
+				><span class="cod__caret" class:cod__caret--blink={activePane === 'a'}></span>
 			</p>
 		</div>
 		<div class="cod__pane">
 			<div class="cod__pane-head">run #2</div>
 			<p class="cod__text">
-				{textB.slice(0, COMMON.length)}<span class="cod__diff" class:cod__diff--on={diverged}
+				{textB.slice(0, COMMON.length)}<span class="cod__diff" class:cod__diff--on={divergedB}
 					>{textB.slice(COMMON.length)}</span
-				><span class="cod__caret" class:cod__caret--blink={playing}></span>
+				><span class="cod__caret" class:cod__caret--blink={activePane === 'b'}></span>
 			</p>
 		</div>
 	</div>
 
 	<button class="cod__play" onclick={play} disabled={playing}>
-		{revealed === 0 ? '▶ Run both' : playing ? 'Generating…' : '▶ Run again'}
+		{revealedA === 0 ? '▶ Run both' : playing ? 'Generating…' : '▶ Run again'}
 	</button>
 
 	<p class="cod__footnote">Illustrative transcript of a reproducible phenomenon: hosted LLM APIs diverge at temperature = 0 under concurrent load.</p>

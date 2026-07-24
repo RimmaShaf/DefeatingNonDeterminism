@@ -170,6 +170,33 @@
 				This one is not a recording. A real local server running GPT-2 is live below: click the button and the
 				browser will send a request to an actual PyTorch process on your machine.
 			</p>
+			<p>
+				Each click does exactly this — the same prompt, tokenized once, run through the model's <code
+					>forward()</code
+				>
+				twice in a row, in <code>eval()</code> mode so dropout can't introduce its own randomness:
+			</p>
+			<pre class="code-block"><code>{`tokenizer = AutoTokenizer.from_pretrained("gpt2")
+model = AutoModelForCausalLM.from_pretrained("gpt2")
+model.eval()  # disable dropout — we want the deterministic path
+
+inputs = tokenizer(prompt, return_tensors="pt")
+
+with torch.no_grad():
+    logits_1 = model(**inputs).logits   # forward pass #1
+with torch.no_grad():
+    logits_2 = model(**inputs).logits   # forward pass #2, same inputs
+
+identical = torch.equal(logits_1, logits_2)  # bitwise comparison`}</code
+				></pre>
+			<p>
+				<code>model(**inputs)</code> is the forward pass: the prompt's tokens flow through every transformer
+				block — attention, then the MLP's matrix multiplies and reductions — and out comes a logits tensor, one
+				row of scores over the vocabulary for every input position. Doing that twice, back to back, on the same
+				CPU process with no other work interleaved, means the exact same kernels run in the exact same order
+				both times. <code>torch.equal</code> checks every element of both tensors bit-for-bit — no tolerance, no
+				rounding allowed.
+			</p>
 			<LiveDeterminismDemo />
 			<p>
 				What if you remove the local GPU from the equation and ask the same thing of a proprietary
@@ -209,6 +236,25 @@
 </main>
 
 <style>
+	.code-block {
+		max-width: var(--max-text);
+		margin: 16px 0;
+		padding: 16px 20px;
+		border: 1px solid var(--hairline);
+		border-radius: 8px;
+		background: #1d2230;
+		color: #e0e0e0;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 13px;
+		line-height: 1.6;
+		overflow-x: auto;
+	}
+
+	.article-section__body code {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 0.9em;
+	}
+
 	.article-section--references {
 		margin-top: 48px;
 		padding-top: 24px;
