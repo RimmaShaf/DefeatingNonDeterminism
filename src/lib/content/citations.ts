@@ -20,9 +20,9 @@ export const CITATIONS = {
 	},
 	quantization_instability: {
 		id: 'quantization_instability',
-		href: 'https://arxiv.org/pdf/2506.09501',
-		label: 'arXiv:2506.09501',
-		title: 'Output instability in quantized LLMs (arXiv:2506.09501)'
+		href: 'https://www.iro.umontreal.ca/~mignotte/IFT2425/Disasters.html',
+		label: 'IFT2425',
+		title: 'Disasters attributable to bad numerical computing' 
 	},
 	fpna_hpc_groq: {
 		id: 'fpna_hpc_groq',

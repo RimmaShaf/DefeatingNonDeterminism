@@ -1,0 +1,9 @@
+
+
+https://www.behance.net/brianomolo - design inspiration
+
+Defeating Nondeterminism in LLM Inference — https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/
+thinking-machines-lab/batch_invariant_ops — https://github.com/thinking-machines-lab/batch_invariant_ops
+Output instability in quantized LLMs (arXiv:2506.09501) — https://arxiv.org/pdf/2506.09501
+Impacts of floating-point non-associativity on reproducibility for HPC and deep learning (ORNL / ETH / Groq) — https://arxiv.org/html/2408.05148v1
+

@@ -2,6 +2,10 @@
 	Beat: "Another way" — Groq LPU: determinism by architecture, not by tax.
 	Source: Shanmugavelu et al., arXiv:2408.05148 (ORNL / ETH / Groq).
 -->
+<script lang="ts">
+	import { base } from '$app/paths';
+</script>
+
 <div class="gl">
 	<div class="gl__panes">
 		<div class="gl__pane">
@@ -31,6 +35,8 @@
 		test case ran <strong>~30× faster</strong> than the GPU baseline. Determinism didn't cost
 		performance — it <em>was</em> the performance strategy.
 	</p>
+
+	<img class="gl__diagram" src="{base}/talk-assets/grog-gpu-vs-lpu.png" alt="GPU vs Groq LPU architecture comparison" />
 </div>
 
 <style>
@@ -109,6 +115,17 @@
 	.gl__source em {
 		font-style: italic;
 		color: #14356e;
+	}
+
+	.gl__diagram {
+		display: block;
+		margin: 24px auto 0;
+		max-width: min(720px, 92%);
+		width: 100%;
+		height: auto;
+		border-radius: 12px;
+		border: 1px solid #d7e3f4;
+		box-shadow: 0 10px 28px rgba(23, 58, 110, 0.08);
 	}
 
 	@media (max-width: 760px) {

@@ -31,6 +31,11 @@ export const VLLM_NEEDLE_OFF_PATH = path.join(
 	'poem-variance-vllm',
 	'needle-off.json'
 );
+export const VLLM_TEMP_PATHS = {
+	'0.3': path.join(process.cwd(), 'data', 'poem-variance-vllm', 'temp-0.3.json'),
+	'0.7': path.join(process.cwd(), 'data', 'poem-variance-vllm', 'temp-0.7.json'),
+	'1.0': path.join(process.cwd(), 'data', 'poem-variance-vllm', 'temp-1.0.json')
+} as const;
 
 export type RunResult = {
 	index: number;
@@ -44,6 +49,11 @@ export type SavedResponse = {
 	model: string;
 	savedAt: string;
 	runs: RunResult[];
+};
+
+export type TempSavedResponse = SavedResponse & {
+	temperature: number;
+	seed: number;
 };
 
 // The needle experiment mixes the poem prompt ("the needle") into a batch of

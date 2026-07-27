@@ -242,8 +242,8 @@ identical = torch.equal(logits_1, logits_2)  # bitwise comparison`}</code
 		padding: 16px 20px;
 		border: 1px solid var(--hairline);
 		border-radius: 8px;
-		background: #1d2230;
-		color: #e0e0e0;
+		background: var(--note-bg);
+		color: var(--fg);
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 		font-size: 13px;
 		line-height: 1.6;

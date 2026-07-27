@@ -25,3 +25,5 @@ vite.config.ts.timestamp-*
 # Python demo venvs
 .venv-determinism
 .venv-divergence
+server/.venv
+server/.omc

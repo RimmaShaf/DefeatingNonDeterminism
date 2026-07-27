@@ -13,18 +13,23 @@
 	import DemoRecording from '$lib/components/modules/DemoRecording.svelte';
 	import KernelParallelismSimulator from '$lib/components/modules/KernelParallelismSimulator.svelte';
 	import LiveDeterminismDemo from '$lib/components/modules/LiveDeterminismDemo.svelte';
+	import LiveDeterminismTalkDemo from '$lib/components/modules/LiveDeterminismTalkDemo.svelte';
 	import PoemVarianceDemo from '$lib/components/modules/PoemVarianceDemo.svelte';
 	import PoemVarianceGroqDemo from '$lib/components/modules/PoemVarianceGroqDemo.svelte';
 	import PoemVarianceVllmDemo from '$lib/components/modules/PoemVarianceVllmDemo.svelte';
+	import PoemVarianceVllmTempDemo from '$lib/components/modules/PoemVarianceVllmTempDemo.svelte';
 	import QuantAccumulatorDemo from '$lib/components/modules/QuantAccumulatorDemo.svelte';
 	import WeightsFileGag from '$lib/components/modules/WeightsFileGag.svelte';
 	import ProofBlock from '$lib/components/ProofBlock.svelte';
 	import SimulationControlPanel from '$lib/components/SimulationControlPanel.svelte';
 	import { initTalkMode, setCurrentBeat, talkMode } from '$lib/stores/talkMode';
+	import { CITATION_ORDER, getCitation } from '$lib/content/citations';
 
 	// Beats are numbered by DOM order — add/move/remove <section class="beat">
 	// freely, just keep TOTAL_BEATS equal to the number of sections.
-	const TOTAL_BEATS = 24;
+	const TOTAL_BEATS = 29;
+
+	const THINKING_MACHINES_IDS = new Set(['defeating_nondeterminism_blog', 'batch_invariant_ops']);
 
 	// Decorative line-art pattern, used sparingly (cold open + epilogue).
 	const patternStyle = `--pattern: url('${base}/talk-assets/pattern-blue.jpg')`;
@@ -106,7 +111,7 @@
 	<!-- COLD OPEN -->
 	<section class="beat beat--pattern" style={patternStyle}>
 		<p class="beat__kicker">Act I · The anomaly</p>
-		<h1 class="beat__statement beat__statement--xl">
+		<h1 class="beat__statement beat__statement">
 			Nobody touched <span class="hl">anything</span>.
 		</h1>
 		<div class="beat__demo beat__demo--bare">
@@ -151,10 +156,14 @@
 		</div>
 	</section>
 
+
+
+	
+
 	<!-- THE STAKES 1/3 — TRUST -->
 	<section class="beat">
 		<p class="beat__kicker">Act I · What's at stake — Trust</p>
-		<h1 class="beat__statement">Determinism means you can <span class="hl">actually debug it</span>.</h1>
+		<h1 class="beat__statement">Would you like to <span class="hl">actually debug it</span>?</h1>
 		<div class="beat__demo beat__demo--bare beat__demo--wide stake-solo">
 			<img
 				class="stake-solo__art"
@@ -221,7 +230,7 @@
 	<!-- THE STAKES 3/3 — SAFETY-CRITICAL -->
 	<section class="beat">
 		<p class="beat__kicker">Act I · What's at stake — Safety-critical</p>
-		<h1 class="beat__statement">Same scan, <span class="hl">same answer</span>, every time.</h1>
+		<h3 class="beat__statement">Determinism makes a model <span class="strike">correct</span> accountable.</h3>
 		<div class="beat__demo beat__demo--bare beat__demo--wide stake-solo">
 			<img
 				class="stake-solo__art"
@@ -243,14 +252,38 @@
 						or a court — will accept.
 					</li>
 					<li>
-						Run-to-run determinism doesn't make a model <span class="hl">correct</span>. It makes
-						it <span class="hl">accountable</span>.
+						FDA cleared first patient-facing GenAI app.<span class="hl">Is it really so?</span>.
 					</li>
 				</ul>
 			</div>
 		</div>
 	</section>
 
+	<!-- REFERENCES -->
+	<section class="beat">
+		<p class="beat__kicker">References</p>
+		<h3 class="beat__statement">Work of the <span class="hl">Thinking Machines'</span></h3>
+		<p class="beat__sub">
+			This entire talk is a walkthrough of one team's research and the engineering they shipped
+			to fix it.
+		</p>
+		<ul class="refs">
+			{#each CITATION_ORDER as citeKey (citeKey)}
+				{@const record = getCitation(citeKey)}
+				{@const featured = THINKING_MACHINES_IDS.has(citeKey)}
+				<li class="refs__item" class:refs__item--featured={featured}>
+					{#if featured}
+						<span class="refs__badge">Thinking Machines</span>
+					{/if}
+					<a class="refs__link" href={record.href} target="_blank" rel="noreferrer">
+						{record.title}
+					</a>
+					<span class="refs__url">{record.href}</span>
+				</li>
+			{/each}
+		</ul>
+	</section>
+	
 	<!-- LIVE EVIDENCE — 100× to the cloud, temperature 0 -->
 	<section class="beat">
 		<p class="beat__kicker">Act I · Live evidence</p>
@@ -286,7 +319,7 @@ for (let i = 0; i < 100; i++) {
 
 	<!-- THE EVIDENCE -->
 	<section class="beat">
-		<p class="beat__kicker">Act I · On the record</p>
+		<p class="beat__kicker">Act I · Ghost in the machine</p>
 		<h2 class="beat__statement">The weights <span class="hl">never change</span>.</h2>
 		<div class="beat__demo beat__demo--bare beat__demo--wide">
 			<WeightsFileGag />
@@ -297,17 +330,18 @@ for (let i = 0; i < 100; i++) {
 	<!-- ═══════════ ACT II · THE MECHANISM ═══════════ -->
 
 	<!-- FIRST CRACK — 0.1 + 0.2, live Python -->
+	 <!--note="Real Python (Pyodide/WASM) — loads from CDN, give it a few seconds on stage."/-->
 	<section class="beat">
-		<p class="beat__kicker">Act II · The first crack</p>
+		<p class="beat__kicker">Act II · CS crushes your soul</p>
 		<h2 class="beat__statement">
 			<span class="mono">What is <span class="hl"> 0.1 + 0.2</span> ?</span>
 		</h2>
 		<div class="beat__demo beat__demo--bare beat__demo--wide">
 			<ExhibitFrame
 				src="/talk-embeds/python-terminal.html"
-				title="Live Python in the browser — type 0.1 + 0.2 yourself"
-				note="Real Python (Pyodide/WASM) — loads from CDN, give it a few seconds on stage."
-			/>
+				title="Live Python in the browser — type 0.1 + 0.2 yourself"/>
+			
+			
 		</div>
 		<p class="beat__sub">
 			Real numbers can't be faithfully represented with floating point arithmetics.
@@ -317,7 +351,7 @@ for (let i = 0; i < 100; i++) {
 	<!-- UNDER THE HOOD — how a float is actually stored -->
 	<section class="beat">
 		<p class="beat__kicker">Act II · Under the hood</p>
-		<h3 class="beat__statement">Real numbers can't be faithfully represented with <span class="hl">floating point</span> arithmetics.</h3>
+		<h3 class="beat__statement">Floating points lead to <span class="hl">rounding errors</span></h3>
 		<div class="beat__demo beat__demo--bare fp-anatomy">
 			<p class="fp-anatomy__formula">
 				value = <span class="fp-s">±1</span> · 2<sup><span class="fp-e">E−1023</span></sup> ·
@@ -361,19 +395,19 @@ for (let i = 0; i < 100; i++) {
 				title="The Patriot bug — 0.1 is not a binary number"
 			/>
 		</div>
-		<p class="beat__sub">
+		<!-- <p class="beat__sub">
 			The Patriot's 24-bit register chopped 0.1's infinite tail — losing
 			<span class="mono">9.5×10⁻⁸ s</span> every tick,
 			<span class="hl">always in the same direction</span>, ten times a second. After 100 hours
 			of uptime the clock was 0.34 s slow, and the radar's range gate looked half a kilometer
 			from the target. 28 people died of a truncation error.
-		</p>
+		</p> -->
 	</section>
 
 	<!-- EXHIBIT A — inside a bf16 add -->
 	<section class="beat">
 		<p class="beat__kicker">Act II · Exhibit A</p>
-		<h1 class="beat__statement">Watch the bit <span class="hl">fall off</span>.</h1>
+		<h1 class="beat__statement">Summing up trouble leads to <span class="hl">more trouble</span></h1>
 		<div class="beat__demo beat__demo--bare beat__demo--wide">
 			<ExhibitFrame
 				src="/talk-embeds/fp-cubes.html"
@@ -389,8 +423,7 @@ for (let i = 0; i < 100; i++) {
 			<span class="mono">(a + b) + c&nbsp;≠&nbsp;a + (b + c)</span>
 		</h1>
 		<p class="beat__sub">
-			Floating-point addition is <span class="hl">not associative</span>. At 2048, fp16's gap
-			between representable numbers is 2 — add a 1 and it simply <span class="hl">disappears</span>.
+			Floating-point addition is <span class="hl">not associative</span>.
 		</p>
 		<div class="beat__demo beat__demo--bare beat__demo--wide">
 			<ExhibitFrame
@@ -402,7 +435,7 @@ for (let i = 0; i < 100; i++) {
 
 	<!-- ATOMIC ADD — guarantees delivery, not order -->
 	<section class="beat">
-		<p class="beat__kicker">Act II · Under the hood</p>
+		<p class="beat__kicker">Act II · Blame the GPUs</p>
 		<h1 class="beat__statement">
 			Atomic add guarantees <span class="hl">delivery</span>, not <span class="hl">order</span>.
 		</h1>
@@ -413,43 +446,105 @@ for (let i = 0; i < 100; i++) {
 		</p>
 		<div class="beat__demo beat__demo--bare beat__demo--wide">
 			<ExhibitFrame
-				src="/talk-embeds/fp-atomic-add.html"
-				title="Atomic add — same 8 numbers, a different arrival order every race"
+				src="/talk-embeds/atomic-add-figure2.html"
+				title="Atomic add — Figure 2 from Thinking Machines' Defeating Nondeterminism in LLM Inference"
 			/>
 		</div>
-		<p class="beat__sub">
-			Same 8 numbers as the mosaic. Which core finishes first is a
-			<span class="hl">hardware scheduling</span> detail — and floating-point addition isn't
-			associative, so a different arrival order can round to a <span class="hl">different sum</span>.
-		</p>
+		
 	</section>
 
 		
 	<!-- THE TWIST — the math alone checks out -->
 	<section class="beat">
 		<p class="beat__kicker">Act II · The twist</p>
-		<h1 class="beat__statement">However, the forward pass of an LLM involves no operations that require atomic adds. 
-			The forward pass in an LLM is in fact <span class="hl">“run-to-run deterministic”</span>
-
-</h1>
+		<h1 class="beat__statement">
+		Atomic adds aren't used anywhere! 
+		</h1>
 		<p class="beat__sub">
-			
+		The forward pass of an LLM involves no operations that require atomic adds. 
+        The forward pass in an LLM is in fact <span class="hl">“run-to-run deterministic”</span>. 
 		</p>
 	</section>
 
-
-	<!-- THE TWIST — the math alone checks out -->
+	<!-- LIVE, LOCAL — GPT-2 forward pass determinism, with a safe fallback -->
 	<section class="beat">
-		<p class="beat__kicker">Act II · The twist</p>
-		<h1 class="beat__statement">The math <span class="hl">checks out</span>.</h1>
-		<div class="beat__demo beat__demo--bare beat__demo--wide">
-			<SameOpBitwise />
-		</div>
+		<p class="beat__kicker">Act II · Proof, live</p>
+		<h1 class="beat__statement">Barebones LLM <span class="hl">inference</span> demo</h1>
 		<p class="beat__sub">
-			Same op, same data: <span class="hl">bitwise identical</span>, a thousand times over.<br />
-			The mechanism is real — but something else has to <span class="hl">shuffle the order</span>.
+			A real FastAPI + PyTorch process on this machine loads <span class="mono">gpt2</span>, runs
+			the same prompt twice, and compares the logits <span class="hl">bitwise</span>.
 		</p>
+		<details class="beat__code">
+			<summary>Show the exact server code</summary>
+			<pre><code>{`tokenizer = AutoTokenizer.from_pretrained("gpt2")
+model = AutoModelForCausalLM.from_pretrained("gpt2")
+model.eval()  # disable dropout — we want the deterministic path
+
+inputs = tokenizer(prompt, return_tensors="pt")
+
+with torch.no_grad():
+    logits_1 = model(**inputs).logits   # forward pass #1
+with torch.no_grad():
+    logits_2 = model(**inputs).logits   # forward pass #2, same inputs
+
+identical = torch.equal(logits_1, logits_2)  # bitwise comparison`}</code></pre>
+		</details>
+		<div class="beat__demo beat__demo--wide">
+			<LiveDeterminismTalkDemo />
+		</div>
+		<!-- <p class="beat__sub">
+			CPU, no batching, no concurrent requests — the same graph executes the same way, every
+			time. <span class="hl">Run-to-run deterministic</span>, exactly as claimed.
+		</p> -->
 	</section>
+
+	<!-- MATMUL MECHANICS — what matrix multiplication actually does -->
+	<section class="beat">
+		<p class="beat__kicker">Act II · The traitor</p>
+		<h1 class="beat__statement">
+			Batch invariance
+		</h1>
+		<div class="beat__demo beat__demo--bare beat__demo--wide">
+			<ExhibitFrame
+				src="/talk-embeds/matmul-basics.html"
+				title="How matrix multiplication works — full batch vs. just row 0, same answer either way"
+			/>
+		</div>
+	</section>
+
+	<!-- BATCH INVARIANCE — matmul is deterministic, not batch-invariant -->
+	<section class="beat">
+		<p class="beat__kicker">Act II · Under the hood</p>
+		<h1 class="beat__statement">
+			Matmul is deterministic. <span class="hl">Batch-invariant</span>, it is not.
+		</h1>
+		<p class="beat__sub">
+			Row 0 of the output should depend only on row 0 of the input. Empirically,
+			<span class="hl">it doesn't</span> — the batch size changes which kernel runs, and
+			each kernel groups the same sum differently.
+		</p>
+
+		<div class="code-card">
+<span class="cmt"># but not batch-invariant</span>
+B = 2048
+D = 4096
+a = torch.linspace(-1000, 1000, B*D).reshape(B, D)
+b = torch.linspace(-1000, 1000, D*D).reshape(D, D)
+<span class="cmt"># matrix-vector: take the first row of the batch, then multiply</span>
+out1 = torch.mm(a[:1], b)
+<span class="cmt"># matrix-matrix: multiply the whole batch, then take the first row</span>
+out2 = torch.mm(a, b)[:1]
+percentage_difference = ((out1 - out2).abs() / out1.abs()) * <span class="num">100</span>
+		</div>
+		<!-- <div class="beat__demo beat__demo--bare beat__demo--wide">
+			<ExhibitFrame
+				src="/talk-embeds/matmul-batch-invariance.html"
+				title="Same 8 terms of a dot product, reduced two ways: tree vs sequential"
+			/>
+		</div> -->
+	</section>
+
+
 
 	<!-- FOLLOW THE BATCH -->
 	<section class="beat">
@@ -463,6 +558,66 @@ for (let i = 0; i < 100; i++) {
 			<SimulationControlPanel />
 			<KernelParallelismSimulator />
 		</div>
+	</section>
+	
+
+	<!-- THE FIX — batch invariance on a GPU you control -->
+	<section class="beat beat--pattern" style={patternStyle}>
+		<p class="beat__kicker">Epilogue · The fix</p>
+		<h1 class="beat__statement">So <span class="hl">fix the batching.</span></h1>
+		<p class="beat__sub">
+			Same 100-call experiment, self-hosted <span class="mono">Llama-3.1-8B-Instruct</span> on a
+			single GPU via <span class="mono">vLLM</span>, with
+			<span class="hl">batch invariance</span> switched on — deterministic reduction kernels
+			instead of whichever one is fastest for the batch shape you happen to land in.
+		</p>
+		<details class="beat__code">
+			<summary>Show the exact experiment code</summary>
+			<pre><code>{`import os
+os.environ["VLLM_BATCH_INVARIANT"] = "1"  # the fix
+
+from vllm import LLM, SamplingParams
+
+PROMPT = "Write a highly creative four-line poem about a clock that counts backward."
+
+llm = LLM(model="meta-llama/Llama-3.1-8B-Instruct")
+sampling = SamplingParams(temperature=0.0, max_tokens=200, seed=42)
+
+outputs = llm.generate([PROMPT] * 100, sampling)
+for out in outputs:
+    print(out.outputs[0].text.strip())`}</code></pre>
+		</details>
+		<div class="beat__demo beat__demo--wide">
+			<PoemVarianceVllmDemo />
+		</div>
+		<!-- <p class="beat__sub">
+			Same dynamic batching that broke every other demo tonight — this time it doesn't matter.
+			<span class="hl">One poem, 100 times.</span><br />
+			Nondeterminism was never inevitable. It was a
+			<span class="hl">performance trade-off</span> nobody told you they were making.
+		</p> -->
+	</section>
+
+	<!-- EPILOGUE — cranking temperature doesn't break the fix -->
+	<section class="beat beat--pattern" style={patternStyle}>
+		<p class="beat__kicker">Epilogue · Turning up the heat</p>
+		<h1 class="beat__statement">Okay, but that was <span class="hl">temperature 0.</span></h1>
+		<p class="beat__sub">
+			Temperature 0 is greedy decoding — barely any randomness to begin with. Does batch
+			invariance still hold once the sampler is actually <span class="hl">sampling</span>?
+			Same setup, same pinned <span class="mono">seed=42</span>, temperature swept from
+			<span class="mono">0.3</span> to <span class="mono">1.0</span>.
+		</p>
+		<div class="beat__demo beat__demo--wide">
+			<PoemVarianceVllmTempDemo />
+		</div>
+		<p class="beat__sub">
+			At <span class="mono">temperature=1.0</span> the model's grip on the prompt slips — it
+			degenerates into <span class="hl">near-gibberish</span>. But it's the
+			<span class="hl">same gibberish, all 30 times.</span> A fixed seed plus deterministic
+			kernels pins down every draw, however noisy the distribution gets.<br />
+			<span class="hl">The randomness you asked for. Nothing more.</span>
+		</p>
 	</section>
 
 	<!-- ═══════════ ACT III · THE FACT-CHECKS ═══════════ -->
@@ -509,7 +664,7 @@ for (let i = 0; i < 100; i++) {
 	<!-- ═══════════ ACT IV · THE RESOLUTION ═══════════ -->
 
 	<!-- THE FIX & THE PRICE -->
-	<section class="beat">
+	<!-- <section class="beat">
 		<p class="beat__kicker">Act IV · The fix &amp; the price</p>
 		<h1 class="beat__statement">Fix the <span class="hl">order</span>, pay in throughput.</h1>
 		<p class="beat__sub">
@@ -523,7 +678,7 @@ for (let i = 0; i < 100; i++) {
 			<ProofBlock />
 			<BatchInvarianceCostChart />
 		</div>
-	</section>
+	</section> -->
 
 	<!-- ANOTHER WAY — GROQ LPU -->
 	<section class="beat">
@@ -619,42 +774,7 @@ for (let i = 0; i < 100; i++) {
 		</p>
 	</section>
 
-	<!-- THE FIX — batch invariance on a GPU you control -->
-	<section class="beat beat--pattern" style={patternStyle}>
-		<p class="beat__kicker">Epilogue · The fix</p>
-		<h1 class="beat__statement">So <span class="hl">fix the batching.</span></h1>
-		<p class="beat__sub">
-			Same 100-call experiment, self-hosted <span class="mono">Llama-3.1-8B-Instruct</span> on a
-			single GPU via <span class="mono">vLLM</span>, with
-			<span class="hl">batch invariance</span> switched on — deterministic reduction kernels
-			instead of whichever one is fastest for the batch shape you happen to land in.
-		</p>
-		<details class="beat__code">
-			<summary>Show the exact experiment code</summary>
-			<pre><code>{`import os
-os.environ["VLLM_BATCH_INVARIANT"] = "1"  # the fix
-
-from vllm import LLM, SamplingParams
-
-PROMPT = "Write a highly creative four-line poem about a clock that counts backward."
-
-llm = LLM(model="meta-llama/Llama-3.1-8B-Instruct")
-sampling = SamplingParams(temperature=0.0, max_tokens=200, seed=42)
-
-outputs = llm.generate([PROMPT] * 100, sampling)
-for out in outputs:
-    print(out.outputs[0].text.strip())`}</code></pre>
-		</details>
-		<div class="beat__demo beat__demo--wide">
-			<PoemVarianceVllmDemo />
-		</div>
-		<p class="beat__sub">
-			Same dynamic batching that broke every other demo tonight — this time it doesn't matter.
-			<span class="hl">One poem, 100 times.</span><br />
-			Nondeterminism was never inevitable. It was a
-			<span class="hl">performance trade-off</span> nobody told you they were making.
-		</p>
-	</section>
+	
 </div>
 
 <div class="deck-counter" aria-live="polite">{$talkMode.currentBeat} / {TOTAL_BEATS}</div>
@@ -731,9 +851,9 @@ for out in outputs:
 		color: var(--heading);
 	}
 
-	.beat__statement--xl {
+	/* .beat__statement--xl {
 		font-size: clamp(42px, 6vw, 90px);
-	}
+	} */
 
 	.beat__sub {
 		margin: 0;
@@ -803,6 +923,25 @@ for out in outputs:
 		gap: 28px;
 		align-items: stretch;
 	}
+
+	.code-card {
+		width: 100%; max-width: 760px;
+		background: #1d2230; color: #e0e0e0;
+		border-radius: 14px; border: 1px solid #2a3040;
+		box-shadow: 0 10px 28px rgba(23, 58, 110, 0.12);
+		padding: clamp(16px,2.4vw,26px);
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: clamp(11px, 1.35vw, 15px);
+		line-height: 1.65;
+		overflow-x: auto;
+		white-space: pre;
+  	}
+
+	.code-card .cmt { color: #8890a8; }
+ 	/* .code-card .kw  { color: #7ab8ff; }
+    .code-card .fn  { color: #9fdcb4; } */
+    .code-card .num { color: #ffd166; }
+
 
 	.stake-solo {
 		display: grid;
@@ -1153,5 +1292,69 @@ for out in outputs:
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 		font-size: 17px;
 		color: #8296bb;
+	}
+
+	.refs {
+		list-style: none;
+		margin: 8px 0 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		width: min(880px, 92vw);
+		text-align: left;
+	}
+
+	.refs__item {
+		position: relative;
+		padding: 14px 18px;
+		border: 1px solid var(--line);
+		border-radius: 10px;
+		background: var(--panel);
+	}
+
+	.refs__item--featured {
+		border-color: var(--accent);
+		border-width: 2px;
+		background: #eaf2fd;
+		padding-left: 16px;
+	}
+
+	.refs__badge {
+		display: inline-block;
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 0.03em;
+		text-transform: uppercase;
+		color: white;
+		background: var(--accent);
+		border-radius: 999px;
+		padding: 2px 9px;
+		margin-bottom: 6px;
+	}
+
+	.refs__link {
+		display: block;
+		font-size: clamp(16px, 1.6vw, 19px);
+		font-weight: 600;
+		color: var(--heading);
+		text-decoration: none;
+	}
+
+	.refs__item--featured .refs__link {
+		font-size: clamp(18px, 1.9vw, 22px);
+	}
+
+	.refs__link:hover {
+		text-decoration: underline;
+	}
+
+	.refs__url {
+		display: block;
+		margin-top: 4px;
+		font-size: 13px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		color: var(--muted);
+		word-break: break-all;
 	}
 </style>
