@@ -119,7 +119,36 @@
 		</div>
 	</section>
 
+		<!-- LIVE EVIDENCE — 100× to the cloud, temperature 0 -->
+	<section class="beat">
+		<p class="beat__kicker">Act I · Live evidence</p>
+		<h1 class="beat__statement">Temperature = 0 is not the fix</h1>
+		<!-- <p class="beat__sub">
+			<span class="mono">claude-sonnet-4-6</span>, one prompt, <span class="hl">100 calls</span>,
+			temperature 0 — formally the “deterministic” mode.
+		</p> -->
+		<details class="beat__code">
+			<summary>Show the exact API call</summary>
+			<pre><code>{`import Anthropic from '@anthropic-ai/sdk';
+
+const PROMPT =
+'Write a highly creative four-line poem about a clock that counts backward.';
+
+for (let i = 0; i < 100; i++) {
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 200,
+    temperature: 0, // the "deterministic" mode
+    thinking: { type: 'disabled' },
+    messages: [{ role: 'user', content: PROMPT }]
+  });
+}`}</code></pre>
+		</details>
+		<div class="beat__demo beat__demo--wide">
+			<PoemVarianceDemo />
+		</div>
 	
+	</section>
 
 
 	<!-- SKEPTICS — three quick objections, one slide -->
@@ -163,32 +192,31 @@
 	<!-- THE STAKES 1/3 — TRUST -->
 	<section class="beat">
 		<p class="beat__kicker">Act I · What's at stake — Trust</p>
-		<h1 class="beat__statement">Would you like to <span class="hl">actually debug it</span>?</h1>
+		<h1 class="beat__statement">A glitch in the <span class="hl">matrix</span></h1>
 		<div class="beat__demo beat__demo--bare beat__demo--wide stake-solo">
 			<img
 				class="stake-solo__art"
-				src="{base}/talk-assets/robot-temp0.png"
+				src="{base}/talk-assets/robot-temp0.jpg"
 				alt="Friendly robot with a factory-reset dial set to temperature 0"
 			/>
 			<div class="stake-solo__body">
 				<p class="stake-solo__caption">
-					Factory reset to <span class="mono">temperature&nbsp;0</span> — replay the exact
+					Factory reset to <span class="mono">deterministic mode</span> — replay the exact
 					failure, get the exact same answer, <span class="hl">actually debug it</span>.
+					Without determinism, “reproduce the bug” stops meaning anything — every rerun is a fresh roll of the dice.
 				</p>
-				<ul class="stake-solo__list">
+				<!-- <ul class="stake-solo__list">
 					<li>
 						A user reports a bad answer. You rerun the same prompt and get something
 						<span class="hl">different</span>. Did you fix it, or just get lucky?
 					</li>
 					<li>
-						Without determinism, “reproduce the bug” stops meaning anything — every rerun is a
-						fresh roll of the dice.
+						An agent reasons about which tool to call. Decides to call 'Websearching' instead of 'Websearch'
 					</li>
 					<li>
-						Deterministic replay turns “it happened once” into “here's exactly why” — the
-						difference between a war story and a fix.
+						Deterministic replay turns “it happened once” into “here's exactly why”.
 					</li>
-				</ul>
+				</ul> -->
 			</div>
 		</div>
 	</section>
@@ -284,38 +312,7 @@
 		</ul>
 	</section>
 	
-	<!-- LIVE EVIDENCE — 100× to the cloud, temperature 0 -->
-	<section class="beat">
-		<p class="beat__kicker">Act I · Live evidence</p>
-		<h1 class="beat__statement">Temperature = 0 is not the fix</h1>
-		<!-- <p class="beat__sub">
-			<span class="mono">claude-sonnet-4-6</span>, one prompt, <span class="hl">100 calls</span>,
-			temperature 0 — formally the “deterministic” mode.
-		</p> -->
-		<details class="beat__code">
-			<summary>Show the exact API call</summary>
-			<pre><code>{`import Anthropic from '@anthropic-ai/sdk';
 
-const PROMPT =
-'Write a highly creative four-line poem about a clock that counts backward.';
-
-for (let i = 0; i < 100; i++) {
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 200,
-    temperature: 0, // the "deterministic" mode
-    thinking: { type: 'disabled' },
-    messages: [{ role: 'user', content: PROMPT }]
-  });
-}`}</code></pre>
-		</details>
-		<div class="beat__demo beat__demo--wide">
-			<PoemVarianceDemo />
-		</div>
-		<p class="beat__sub">
-			The rest of tonight is about <span class="hl">why</span>.
-		</p>
-	</section>
 
 	<!-- THE EVIDENCE -->
 	<section class="beat">
