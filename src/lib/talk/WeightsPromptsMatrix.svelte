@@ -30,7 +30,7 @@
 		<span class="wpm__tag wpm__tag--weights">Weights <span class="wpm__dim">{K} × {P}, float16</span></span>
 	</div>
 
-	<div class="wpm__scene" style="--k: {K}; --p: {P};">
+	<div class="wpm__scene" style="--k: {K}; --p: {P}; --n: {PROMPTS.length};">
 		<div class="wpm__weights">
 			{#each WEIGHTS as row}
 				{#each row as v}
@@ -39,19 +39,14 @@
 			{/each}
 		</div>
 
-		<div class="wpm__prompts">
-			{#each PROMPTS as p}
-				<div class="wpm__pill"><b>{p.who}:</b> {p.text}</div>
-			{/each}
-		</div>
-
-		<div class="wpm__output">
-			{#each PROMPTS as _p}
+		{#each PROMPTS as p, i}
+			<div class="wpm__pill" style="grid-row: {i + 2};"><b>{p.who}:</b> {p.text}</div>
+			<div class="wpm__output-row" style="grid-row: {i + 2};">
 				{#each WEIGHTS[0] as _c}
 					<div class="wpm__cell wpm__cell--out">·</div>
 				{/each}
-			{/each}
-		</div>
+			</div>
+		{/each}
 	</div>
 
 	<p class="wpm__caption">
@@ -115,8 +110,8 @@
 		padding-bottom: 4px;
 		display: grid;
 		grid-template-columns: minmax(190px, 230px) 1fr;
-		grid-template-rows: auto auto;
-		align-items: start;
+		grid-template-rows: auto repeat(var(--n), auto);
+		align-items: stretch;
 		column-gap: clamp(10px, 1.4vw, 20px);
 		row-gap: clamp(3px, 0.4vw, 6px);
 	}
@@ -130,21 +125,15 @@
 		gap: clamp(3px, 0.4vw, 6px);
 	}
 
-	.wpm__prompts {
+	.wpm__pill {
 		grid-column: 1;
-		grid-row: 2;
-		display: flex;
-		flex-direction: column;
-		gap: clamp(3px, 0.4vw, 6px);
 	}
 
-	.wpm__output {
+	.wpm__output-row {
 		grid-column: 2;
-		grid-row: 2;
 		justify-self: end;
 		display: grid;
 		grid-template-columns: repeat(var(--p), clamp(20px, 2.6vw, 32px));
-		grid-auto-rows: minmax(clamp(20px, 2.6vw, 32px), auto);
 		gap: clamp(3px, 0.4vw, 6px);
 	}
 

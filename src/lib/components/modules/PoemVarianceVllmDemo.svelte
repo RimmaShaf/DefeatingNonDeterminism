@@ -59,11 +59,18 @@
 		return Number.isNaN(d.getTime()) ? response.savedAt : d.toLocaleString('en-GB');
 	});
 
+	// The prompt asks for a quatrain; some runs ramble past it with commentary
+	// or "here are some variations" filler. Only the poem itself is worth
+	// visualizing, so the heatmap/legend/samples all cap at 4 lines.
+	const DISPLAY_LINES = 4;
+
 	let successfulRuns = $derived(response?.runs.filter((r) => !r.error && r.lines.length > 0) ?? []);
 	let failedCount = $derived((response?.runs.length ?? 0) - successfulRuns.length);
-	let maxLines = $derived(successfulRuns.reduce((m, r) => Math.max(m, r.lines.length), 0));
+	let maxLines = $derived(
+		Math.min(DISPLAY_LINES, successfulRuns.reduce((m, r) => Math.max(m, r.lines.length), 0))
+	);
 
-	let poemKey = (r: RunResult) => r.lines.join(' / ');
+	let poemKey = (r: RunResult) => r.lines.slice(0, DISPLAY_LINES).join(' / ');
 
 	let poemFrequency = $derived.by(() => {
 		const map = new Map<string, number>();
@@ -224,7 +231,7 @@
 			◆ saved run{savedAtLabel ? ` from ${savedAtLabel}` : ''} — self-hosted RTX 4090, no external
 			API
 			{#if response.totalWallMs}
-				· total wall time: {(response.totalWallMs / 1000).toFixed(1)}s
+				· total wall time: <span class="pvd__wall-time">{(response.totalWallMs / 1000).toFixed(1)}</span>s
 			{/if}
 		</div>
 		<div class="pvd__stats">
@@ -238,10 +245,10 @@
 			</span>
 		</div>
 
-		<div class="pvd__heatmap" style="grid-template-rows: repeat({maxLines}, auto)">
-			{#each { length: maxLines } as _, lineIdx (lineIdx)}
-				<div class="pvd__heatmap-row">
-					<span class="pvd__heatmap-row-label">line {lineIdx + 1}</span>
+		<div class="pvd__lines">
+			{#each lineClusters as clusters, lineIdx (lineIdx)}
+				<div class="pvd__line-row">
+					<span class="pvd__line-label">line {lineIdx + 1}</span>
 					<div class="pvd__heatmap-cells">
 						{#each successfulRuns as r (r.index)}
 							{@const color = clusterColorByRun[lineIdx]?.get(r.index)}
@@ -257,14 +264,6 @@
 							></span>
 						{/each}
 					</div>
-				</div>
-			{/each}
-		</div>
-
-		<div class="pvd__legend">
-			{#each lineClusters as clusters, lineIdx (lineIdx)}
-				<div class="pvd__legend-row">
-					<span class="pvd__legend-row-label">line {lineIdx + 1}:</span>
 					<ul class="pvd__legend-items">
 						{#each clusters as c (c.text)}
 							<li class="pvd__legend-item">
@@ -373,6 +372,11 @@
 		margin-bottom: 8px;
 	}
 
+	.pvd__wall-time {
+		font-weight: 700;
+		color: #b3261e;
+	}
+
 	.pvd__error {
 		font-size: 14px;
 		padding: 8px 12px;
@@ -397,29 +401,35 @@
 		font-weight: 700;
 	}
 
-	.pvd__heatmap {
-		display: grid;
-		gap: 4px;
-		margin-bottom: 12px;
+	.pvd__lines {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		margin-bottom: 16px;
+		font-size: 13px;
 		overflow-x: auto;
 	}
 
-	.pvd__heatmap-row {
+	.pvd__line-row {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		gap: 8px;
+		flex-wrap: wrap;
 	}
 
-	.pvd__heatmap-row-label {
+	.pvd__line-label {
 		flex: 0 0 64px;
 		font-size: 12px;
 		color: var(--muted);
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		padding-top: 3px;
 	}
 
 	.pvd__heatmap-cells {
 		display: flex;
 		gap: 2px;
+		flex: 0 0 auto;
+		padding-top: 2px;
 	}
 
 	.pvd__cell {
@@ -428,27 +438,6 @@
 		height: 18px;
 		border-radius: 2px;
 		flex: 0 0 auto;
-	}
-
-	.pvd__legend {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-		margin-bottom: 16px;
-		font-size: 13px;
-	}
-
-	.pvd__legend-row {
-		display: flex;
-		gap: 8px;
-		align-items: flex-start;
-		flex-wrap: wrap;
-	}
-
-	.pvd__legend-row-label {
-		flex: 0 0 64px;
-		color: var(--muted);
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 	}
 
 	.pvd__legend-items {

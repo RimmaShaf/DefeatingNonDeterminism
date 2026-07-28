@@ -25,7 +25,7 @@
   }
 
   h1 {
-    font-size: 2.2rem;
+    font-size: 2.6rem;
     font-weight: 300;
     letter-spacing: 0.18em;
     color: #fff;
@@ -34,15 +34,15 @@
   }
 
   .subtitle {
-    font-size: 1.05rem;
-    color: #c8c8d0;
+    font-size: 1.25rem;
+    color: #dcdce2;
     letter-spacing: 0.04em;
-    line-height: 1.7;
+    line-height: 1.75;
   }
-  .subtitle b { color: #ffadad; font-weight: 700; }
+  .subtitle b { color: #ffcb7a; font-weight: 700; text-shadow: 0 0 10px rgba(255,171,60,0.4); }
 
   h2 {
-    font-size: 1.15rem;
+    font-size: 1.4rem;
     font-weight: 600;
     letter-spacing: 0.18em;
     color: #fff;
@@ -52,9 +52,9 @@
     border-bottom: 1px solid #2c2c3e;
   }
   .h2-note {
-    font-size: 0.95rem;
-    color: #c8c8d0;
-    line-height: 1.7;
+    font-size: 1.1rem;
+    color: #dcdce2;
+    line-height: 1.75;
     margin-bottom: 20px;
   }
   .h2-note em { color: #bfe6ff; font-style: normal; }
@@ -71,20 +71,20 @@
   /* ====== Section 1: the broken number ====== */
 
   .expansion {
-    background: #07070f;
+    background: #0c0c16;
     border: 1px solid #1c1c2a;
     border-radius: 8px;
     padding: 20px 18px;
     overflow-x: auto;
     white-space: nowrap;
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     letter-spacing: 0.06em;
     margin-bottom: 8px;
   }
-  .expansion .prefix { color: #b8b8c4; }
+  .expansion .prefix { color: #c8c8d0; }
   .expansion .kept { color: #92eeb0; }
-  .expansion .chopped { color: #ff8080; opacity: 0.95; }
-  .expansion .ellipsis { color: #ff8080; opacity: 0.65; }
+  .expansion .chopped { color: #ffb347; opacity: 1; text-shadow: 0 0 10px rgba(255,171,60,0.45); }
+  .expansion .ellipsis { color: #ffb347; opacity: 0.85; text-shadow: 0 0 10px rgba(255,171,60,0.45); }
   .register-edge {
     display: inline-block;
     width: 2px;
@@ -116,8 +116,8 @@
     gap: 14px;
     flex-wrap: wrap;
     margin-bottom: 16px;
-    font-size: 1rem;
-    color: #d0d0d8;
+    font-size: 1.1rem;
+    color: #dcdce2;
   }
   input[type=range] {
     -webkit-appearance: none;
@@ -151,29 +151,29 @@
     gap: 12px;
   }
   .stat-card {
-    background: #11111d;
-    border: 1px solid #1e1e2e;
+    background: #15151f;
+    border: 1px solid #22222f;
     border-radius: 8px;
     padding: 16px 18px;
   }
   .stat-label {
-    font-size: 0.82rem;
+    font-size: 0.92rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #a0a0ac;
+    color: #b4b4c0;
     margin-bottom: 10px;
     line-height: 1.5;
   }
   .stat-value {
-    font-size: 1.35rem;
+    font-size: 1.6rem;
     color: #fff;
     line-height: 1.3;
     word-break: break-all;
   }
   .stat-value.green { color: #92eeb0; }
-  .stat-value.red { color: #ff8080; }
+  .stat-value.red { color: #ffb347; text-shadow: 0 0 10px rgba(255,171,60,0.45); }
   .stat-value.amber { color: #ffd166; }
-  .stat-sub { font-size: 0.82rem; color: #a0a0ac; margin-top: 8px; line-height: 1.5; }
+  .stat-sub { font-size: 0.92rem; color: #b4b4c0; margin-top: 8px; line-height: 1.5; }
 
   /* ====== Section 2: the drift ====== */
 
@@ -185,15 +185,15 @@
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 10px;
-    font-size: 1rem;
-    color: #d0d0d8;
+    font-size: 1.1rem;
+    color: #dcdce2;
   }
-  .uptime-big { font-size: 2rem; color: #ffd166; }
+  .uptime-big { font-size: 2.3rem; color: #ffd166; }
   .uptime-marks {
     display: flex;
     justify-content: space-between;
-    font-size: 0.82rem;
-    color: #9a9aa6;
+    font-size: 0.92rem;
+    color: #b0b0bc;
     margin-top: 8px;
   }
   .uptime-marks span { cursor: pointer; }
@@ -207,42 +207,42 @@
   }
   @media (max-width: 640px) { .clock-panel { grid-template-columns: 1fr; } }
   .clock-card {
-    background: #07070f;
-    border: 1px solid #1e1e2e;
+    background: #0c0c16;
+    border: 1px solid #22222f;
     border-radius: 8px;
     padding: 16px 18px;
     text-align: center;
   }
   .clock-card .stat-label { margin-bottom: 10px; }
   .clock-time {
-    font-size: 1.85rem;
+    font-size: 2.1rem;
     letter-spacing: 0.06em;
     color: #92eeb0;
   }
-  .clock-time.lagging { color: #ff8080; }
-  .clock-sub { font-size: 0.82rem; color: #a0a0ac; margin-top: 8px; }
+  .clock-time.lagging { color: #ffb347; text-shadow: 0 0 10px rgba(255,171,60,0.45); }
+  .clock-sub { font-size: 0.92rem; color: #b4b4c0; margin-top: 8px; }
 
   .gao-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.9rem;
+    font-size: 1.05rem;
     margin-top: 18px;
   }
   .gao-table th, .gao-table td {
-    padding: 9px 12px;
+    padding: 10px 12px;
     text-align: right;
     border-bottom: 1px solid #24243a;
   }
   .gao-table th {
-    color: #a0a0ac;
+    color: #b4b4c0;
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    font-size: 0.76rem;
+    font-size: 0.85rem;
   }
-  .gao-table td:first-child, .gao-table th:first-child { text-align: left; color: #d0d0d8; }
+  .gao-table td:first-child, .gao-table th:first-child { text-align: left; color: #dcdce2; }
   .gao-table tr.current td { background: #ffd1661c; color: #ffd166; }
-  .gao-table td.danger { color: #ff8080; }
+  .gao-table td.danger { color: #ffb347; font-weight: 700; text-shadow: 0 0 8px rgba(255,171,60,0.4); }
 
   /* ====== Section 3: the range gate ====== */
 
@@ -251,14 +251,14 @@
     height: auto;
     display: block;
     border-radius: 8px;
-    background: #07070f;
+    background: #0c0c16;
     border: 1px solid #1c1c2a;
   }
   .verdict {
     margin-top: 14px;
-    padding: 15px 18px;
+    padding: 16px 18px;
     border-radius: 8px;
-    font-size: 1.05rem;
+    font-size: 1.25rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-align: center;
@@ -270,12 +270,13 @@
     color: #92eeb0;
   }
   .verdict.fail {
-    background: #200d0d;
-    border: 1px solid #4a1e1e;
-    color: #ff8080;
+    background: #3a2a0d;
+    border: 1px solid #6a4a1e;
+    color: #ffcb7a;
+    text-shadow: 0 0 10px rgba(255,171,60,0.5);
     animation: pulse 1.6s ease-in-out infinite;
   }
-  @keyframes pulse { 50% { box-shadow: 0 0 18px #ff6b6b33 inset; } }
+  @keyframes pulse { 50% { box-shadow: 0 0 22px #ffb34755 inset; } }
 
   /* ====== Timeline ====== */
 
@@ -283,25 +284,25 @@
   .timeline li {
     display: flex;
     gap: 16px;
-    padding: 11px 0;
+    padding: 12px 0;
     border-bottom: 1px solid #1c1c2a;
-    font-size: 0.92rem;
-    line-height: 1.7;
+    font-size: 1.05rem;
+    line-height: 1.75;
   }
   .timeline li:last-child { border-bottom: none; }
   .timeline .date {
     color: #ffd166;
-    min-width: 6.5em;
+    min-width: 7em;
     flex-shrink: 0;
   }
-  .timeline .event { color: #d0d0d8; }
-  .timeline .event b { color: #ffadad; font-weight: 700; }
+  .timeline .event { color: #dcdce2; }
+  .timeline .event b { color: #ffcb7a; font-weight: 700; text-shadow: 0 0 8px rgba(255,171,60,0.4); }
 
   footer {
     max-width: 780px;
-    font-size: 0.8rem;
-    color: #8a8a96;
-    line-height: 1.8;
+    font-size: 0.9rem;
+    color: #a0a0ac;
+    line-height: 1.85;
     text-align: center;
   }
   footer a { color: #bfe6ff; }
@@ -620,8 +621,8 @@
     ctx.fillStyle = '#5a7a5a';
     ctx.fillRect(-6, -34, 16, 34);
     ctx.restore();
-    ctx.fillStyle = '#b0b0bc';
-    ctx.font = '24px Courier New';
+    ctx.fillStyle = '#c8c8d4';
+    ctx.font = '30px Courier New';
     ctx.textAlign = 'center';
     ctx.fillText('PATRIOT', RX + 2, AXIS_Y + 66);
 
@@ -648,7 +649,7 @@
     ctx.beginPath(); ctx.moveTo(scudX, scudY + 16); ctx.lineTo(scudX, AXIS_Y + 26); ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = '#e8e8f0';
-    ctx.font = '23px Courier New';
+    ctx.font = '30px Courier New';
     ctx.fillText('actual position', scudX, AXIS_Y + 92);
 
     // RANGE GATE — clock ran slow → predicted elapsed time too small →
@@ -656,14 +657,17 @@
     const gateCX = scudX - shiftPx;
     const gateHalfPx = GATE_HALF / M_PER_PX;
     const contains = Math.abs(gateCX - scudX) <= gateHalfPx;
-    const gateColor = contains ? '126,233,163' : '255,107,107';
+    const gateColor = contains ? '126,233,163' : '255,179,71';
 
-    ctx.fillStyle = `rgba(${gateColor},0.10)`;
+    ctx.fillStyle = `rgba(${gateColor},0.16)`;
     ctx.fillRect(gateCX - gateHalfPx, scudY - 58, gateHalfPx * 2, (AXIS_Y + 26) - (scudY - 58));
-    ctx.strokeStyle = `rgba(${gateColor},0.85)`;
-    ctx.lineWidth = 2;
+    if (!contains) { ctx.shadowColor = 'rgba(255,179,71,0.9)'; ctx.shadowBlur = 16; }
+    ctx.strokeStyle = `rgba(${gateColor},1)`;
+    ctx.lineWidth = 3;
     ctx.strokeRect(gateCX - gateHalfPx, scudY - 58, gateHalfPx * 2, (AXIS_Y + 26) - (scudY - 58));
+    ctx.shadowBlur = 0;
     ctx.fillStyle = `rgba(${gateColor},1)`;
+    ctx.font = 'bold 30px Courier New';
     ctx.fillText('range gate — "software looks here"', gateCX, scudY - 72);
 
     // shift annotation
@@ -674,6 +678,7 @@
       ctx.beginPath(); ctx.moveTo(scudX, ay); ctx.lineTo(gateCX, ay); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(gateCX, ay); ctx.lineTo(gateCX - dir * 8, ay - 5); ctx.moveTo(gateCX, ay); ctx.lineTo(gateCX - dir * 8, ay + 5); ctx.stroke();
       ctx.fillStyle = '#ffd166';
+      ctx.font = 'bold 30px Courier New';
       ctx.fillText(fmt(shiftM, 0) + ' m', (scudX + gateCX) / 2, ay + 28);
     }
 

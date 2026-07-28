@@ -28,7 +28,7 @@
 
 	// Beats are numbered by DOM order — add/move/remove <section class="beat">
 	// freely, just keep TOTAL_BEATS equal to the number of sections.
-	const TOTAL_BEATS = 28;
+	const TOTAL_BEATS = 29;
 
 	const THINKING_MACHINES_IDS = new Set(['defeating_nondeterminism_blog', 'batch_invariant_ops']);
 
@@ -37,6 +37,24 @@
 	initTalkMode(true, TOTAL_BEATS);
 
 	let deckEl: HTMLElement;
+
+	// "Squished" = layout adjusted for rooms where the bottom third of the
+	// screen is cut off (e.g. by a lectern or a low projector edge).
+	// Toggle with the "S" key or the on-screen button; persists across reloads.
+	let squished = $state(false);
+
+	function setSquished(value: boolean): void {
+		squished = value;
+		try {
+			localStorage.setItem('talk-squished', value ? '1' : '0');
+		} catch {
+			// localStorage may be unavailable (e.g. private browsing); ignore.
+		}
+	}
+
+	function toggleSquished(): void {
+		setSquished(!squished);
+	}
 
 	function beatElements(): HTMLElement[] {
 		return Array.from(deckEl.querySelectorAll<HTMLElement>('.beat'));
@@ -60,10 +78,19 @@
 		} else if (event.key === 'End') {
 			event.preventDefault();
 			goTo(TOTAL_BEATS);
+		} else if (event.key === 's' || event.key === 'S') {
+			event.preventDefault();
+			toggleSquished();
 		}
 	}
 
 	onMount(() => {
+		try {
+			setSquished(localStorage.getItem('talk-squished') === '1');
+		} catch {
+			// localStorage may be unavailable (e.g. private browsing); ignore.
+		}
+
 		const els = beatElements();
 		const observer = new IntersectionObserver(
 			(entries) => {
@@ -86,7 +113,7 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-<div class="deck" bind:this={deckEl}>
+<div class="deck" class:squished bind:this={deckEl}>
 	<!-- ═══════════ TITLE ═══════════ -->
 
 	<!-- OPENING SLIDE -->
@@ -100,11 +127,31 @@
 				<p class="beat__title-role">Senior Data Scientist @ VGW</p>
 			</div>
 		</div>
-		<img
-			class="beat__title-art"
-			src="{base}/talk-assets/hero-image.jpg"
-			alt=""
-		/>
+		<div class="beat__title-art-wrap">
+			<img
+				class="beat__title-art"
+				src="{base}/talk-assets/hero-image.jpg"
+				alt=""
+			/>
+			<a
+				class="beat__title-credit"
+				href="https://www.behance.net/brianomolo"
+				target="_blank"
+				rel="noreferrer"
+			>
+				Design inspiration: behance.net/brianomolo
+			</a>
+		</div>
+		<div class="beat__title-qr">
+			<img
+				class="beat__title-qr-img"
+				src="{base}/talk-assets/mrx2jf6j-qr.png"
+				alt="QR code linking to the talk materials"
+			/>
+			<a class="beat__title-qr-link" href="https://tinyurl.com/mrx2jf6j" target="_blank" rel="noreferrer">
+				tinyurl.com/mrx2jf6j
+			</a>
+		</div>
 	</section>
 
 	<!-- ═══════════ ACT I · THE ANOMALY ═══════════ -->
@@ -293,7 +340,7 @@ for (let i = 0; i < 100; i++) {
 		<p class="beat__kicker">References</p>
 		<h3 class="beat__statement">Work of the <span class="hl">Thinking Machines'</span></h3>
 		<p class="beat__sub">
-			This entire talk is a walkthrough of one team's research and the engineering they shipped
+			This talk inspiration is one team's research and the engineering they shipped
 			to fix it.
 		</p>
 		<ul class="refs">
@@ -420,9 +467,9 @@ for (let i = 0; i < 100; i++) {
 		<h1 class="beat__statement">
 			<span class="mono">(a + b) + c&nbsp;≠&nbsp;a + (b + c)</span>
 		</h1>
-		<p class="beat__sub">
+		<!-- <p class="beat__sub">
 			Floating-point addition is <span class="hl">not associative</span>.
-		</p>
+		</p> -->
 		<div class="beat__demo beat__demo--bare beat__demo--wide">
 			<ExhibitFrame
 				src="/talk-embeds/fp-grid.html"
@@ -437,15 +484,15 @@ for (let i = 0; i < 100; i++) {
 		<h1 class="beat__statement">
 			Atomic add guarantees <span class="hl">delivery</span>, not <span class="hl">order</span>.
 		</h1>
-		<p class="beat__sub">
+		<!-- <p class="beat__sub">
 			When many cores must accumulate into one shared value, the kernel reaches for an
 			<span class="mono">atomic add</span>. It guarantees every core's contribution lands — it makes
 			<span class="hl">no promise about the order</span> they arrive in.
-		</p>
+		</p> -->
 		<div class="beat__demo beat__demo--bare beat__demo--wide">
 			<ExhibitFrame
 				src="/talk-embeds/atomic-add-figure2.html"
-				title="Atomic add — Figure 2 from Thinking Machines' Defeating Nondeterminism in LLM Inference"
+				title=""
 			/>
 		</div>
 		
@@ -468,10 +515,10 @@ for (let i = 0; i < 100; i++) {
 	<section class="beat">
 		<p class="beat__kicker">Act II · Proof, live</p>
 		<h1 class="beat__statement">Barebones LLM <span class="hl">inference</span> demo</h1>
-		<p class="beat__sub">
+		<!-- <p class="beat__sub">
 			A real FastAPI + PyTorch process on this machine loads <span class="mono">gpt2</span>, runs
 			the same prompt twice, and compares the logits <span class="hl">bitwise</span>.
-		</p>
+		</p> -->
 		<details class="beat__code">
 			<summary>Show the exact server code</summary>
 			<pre><code>{`tokenizer = AutoTokenizer.from_pretrained("gpt2")
@@ -516,13 +563,15 @@ identical = torch.equal(logits_1, logits_2)  # bitwise comparison`}</code></pre>
 		<h1 class="beat__statement">
 			Matmul is deterministic. <span class="hl">Batch-invariant</span>, it is not.
 		</h1>
-		<p class="beat__sub">
+		<!-- <p class="beat__sub">
 			Row 0 of the output should depend only on row 0 of the input. Empirically,
 			<span class="hl">it doesn't</span> — the batch size changes which kernel runs, and
 			each kernel groups the same sum differently.
-		</p>
+		</p> -->
 
-		<pre class="code-card"><code><span class="cmt"># but not batch-invariant</span>
+		<details class="beat__code">
+			<summary>Show the exact matmul code</summary>
+			<pre class="code-card"><code>
 B = <span class="num">2048</span>
 D = <span class="num">4096</span>
 a = torch.linspace(-<span class="num">1000</span>, <span class="num">1000</span>, B*D).reshape(B, D)
@@ -533,8 +582,15 @@ out1 = torch.mm(a[:<span class="num">1</span>], b)
 
 <span class="cmt"># matrix-matrix: multiply the whole batch, then take the first row</span>
 out2 = torch.mm(a, b)[:<span class="num">1</span>]
+abs_diff = (out1 - out2).abs()
+percentage_difference = ((out1 - out2).abs() / out1.abs()) * <span class="num">100</span>
+<span class="cmt">
+#Value from out1 (a[:1] @ b): 1,382,144.00
+#Value from out2 (a @ b)[:1]: 1,382,784.00</span>
+#Absolute Difference:         640.00
+#Relative Difference:         0.0463%</code></pre>
+		</details>
 
-percentage_difference = ((out1 - out2).abs() / out1.abs()) * <span class="num">100</span></code></pre>
 
 		<div class="beat__demo beat__demo--bare beat__demo--wide">
 			<WeightsPromptsMatrix />
@@ -636,7 +692,7 @@ for out in outputs:
 	<section class="beat">
 		<p class="beat__kicker">Act IV · Another way</p>
 		<h1 class="beat__statement">
-			Or build a machine that <span class="hl">never improvises</span>.
+			Deterministic <span class="hl">hardware</span>
 		</h1>
 		<div class="beat__demo beat__demo--bare beat__demo--wide">
 			<GroqLpu />
@@ -646,7 +702,7 @@ for out in outputs:
 	<!-- ═══════════ ACT III · THE FACT-CHECKS ═══════════ -->
 
 	<!-- FACT-CHECK #1 — QUANTIZATION -->
-	<section class="beat">
+	<!-- <section class="beat">
 		<p class="beat__kicker">Act III · Fact-check #1</p>
 		<h1 class="beat__statement">
 			<span class="strike">“Quantized models are immune — int8 is exact!”</span>
@@ -659,10 +715,10 @@ for out in outputs:
 		<div class="beat__demo beat__demo--wide">
 			<QuantAccumulatorDemo />
 		</div>
-	</section>
+	</section> -->
 
-	<!-- FACT-CHECK #2 — LOCAL SERVING -->
-	<section class="beat">
+	FACT-CHECK #2 — LOCAL SERVING
+	<!-- <section class="beat">
 		<p class="beat__kicker">Act III · Fact-check #2</p>
 		<h1 class="beat__statement">
 			<span class="strike">“I serve it myself. I'm the only customer.”</span>
@@ -682,55 +738,10 @@ for out in outputs:
 		<div class="beat__demo beat__demo--bare beat__demo--wide">
 			<CpuFactCheck />
 		</div>
-	</section>
+	</section> -->
 
 
-		<!-- EPILOGUE — same experiment, different provider -->
-	<section class="beat beat--pattern" style={patternStyle}>
-		<p class="beat__kicker">Epilogue · Same experiment, different provider</p>
-		<h1 class="beat__statement">And on <span class="hl">Groq</span>?</h1>
-		<p class="beat__sub">
-			The same 100-call experiment against <span class="mono">openai/gpt-oss-120b</span> on Groq —
-			this time with a fixed <span class="mono">seed</span> on top of temperature 0.
-		</p>
-		<details class="beat__code">
-			<summary>Show the exact API call</summary>
-			<pre><code>{`const PROMPT =
-  'Write a highly creative four-line poem about a clock that counts backward.';
-
-for (let i = 0; i < 100; i++) {
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: 'Bearer ' + process.env.GROQ_API_KEY
-    },
-    body: JSON.stringify({
-      model: 'openai/gpt-oss-120b',
-      max_completion_tokens: 1024,
-      reasoning_effort: 'low',
-      temperature: 0,
-      seed: 700, // pinned seed, on top of temperature 0
-      messages: [{ role: 'user', content: PROMPT }]
-    })
-  });
-  const data = await res.json();
-  console.log(data.choices[0].message.content);
-}`}</code></pre>
-		</details>
-		<div class="beat__demo beat__demo--wide">
-			<PoemVarianceGroqDemo />
-		</div>
-		<p class="beat__sub">
-			100 runs, seed pinned — still <span class="hl">three different poems</span>. Identical
-			through line 3, splitting at <span class="hl">one near-tied token</span> in line 4. Dense
-			<span class="mono">llama-3.3-70b</span>, same test: one word flips
-			(<span class="mono">noon → dawn</span>) — but never within a burst. 46 simultaneous calls:
-			identical. Spread across minutes: drift. The divergence follows the
-			<span class="hl">batching windows</span>, not the model.<br />
-			<span class="hl">Deterministic hardware ≠ deterministic API.</span>
-		</p>
-	</section>
+	
 
 	<!-- ═══════════ ACT IV · THE RESOLUTION ═══════════ -->
 
@@ -789,14 +800,63 @@ for (let i = 0; i < 100; i++) {
 		</p>
 	</section> -->
 
-	<!-- EPILOGUE — same experiment, different provider -->
+	
+
+	<!-- RECAP -->
+	<section class="beat beat--left">
+		<p class="beat__kicker">Recap</p>
+		<h1 class="beat__statement">How we got <span class="hl">non-deterministic</span> answers.</h1>
+		<ol class="recap-chain">
+			<li>
+				<span class="recap-chain__num">1</span>
+				Floating-point numbers are approximations — every add or multiply can carry a
+				<span class="hl">rounding error</span>.
+			</li>
+			<li>
+				<span class="recap-chain__num">2</span>
+				Floating-point addition isn't associative, so the
+				<span class="hl">order of operations</span> changes the result.
+			</li>
+			<li>
+				<span class="recap-chain__num">3</span>
+				GPUs don't guarantee that order — <span class="hl">no atomic adds</span> pin down the
+				sequence in the forward pass.
+			</li>
+			<li>
+				<span class="recap-chain__num">4</span>
+				Matmul and friends aren't <span class="hl">batch-invariant</span> — the kernel picks a
+				different reduction order depending on what else is in the batch.
+			</li>
+		</ol>
+		<p class="recap-chain__so">So either:</p>
+		<div class="recap-split">
+			<div class="recap-split__card">
+				<h3 class="recap-split__title">Hamstring the GPU</h3>
+				<p class="recap-split__body">
+					Fix the batch, disable the fast kernels, pin the schedule — determinism as a
+					<span class="hl">tax you pay</span> at runtime.
+				</p>
+			</div>
+			<div class="recap-split__card recap-split__card--accent">
+				<h3 class="recap-split__title">Or use deterministic software</h3>
+				<p class="recap-split__body">
+					Batch-invariant kernels (or an architecture like Groq's LPU) give you the
+					<span class="hl">same bits by construction</span> — no tax required.
+				</p>
+			</div>
+		</div>
+	</section>
+
+
+
+		<!-- EPILOGUE — same experiment, different provider -->
 	<section class="beat beat--pattern" style={patternStyle}>
 		<p class="beat__kicker">Epilogue · Same experiment, different provider</p>
 		<h1 class="beat__statement">And on <span class="hl">Groq</span>?</h1>
-		<p class="beat__sub">
+		<!-- <p class="beat__sub">
 			The same 100-call experiment against <span class="mono">openai/gpt-oss-120b</span> on Groq —
 			this time with a fixed <span class="mono">seed</span> on top of temperature 0.
-		</p>
+		</p> -->
 		<details class="beat__code">
 			<summary>Show the exact API call</summary>
 			<pre><code>{`const PROMPT =
@@ -835,11 +895,19 @@ for (let i = 0; i < 100; i++) {
 			<span class="hl">Deterministic hardware ≠ deterministic API.</span>
 		</p>
 	</section>
-
-	
 </div>
 
-<div class="deck-counter" aria-live="polite">{$talkMode.currentBeat} / {TOTAL_BEATS}</div>
+<div class="deck-counter" class:squished aria-live="polite">{$talkMode.currentBeat} / {TOTAL_BEATS}</div>
+
+<button
+	class="squish-toggle"
+	class:squished
+	type="button"
+	onclick={toggleSquished}
+	title="Toggle squished layout (S) — for rooms where the bottom of the screen is cut off"
+>
+	{squished ? 'S' : 'O'}
+</button>
 
 <style>
 	:global(body:has(.deck)) {
@@ -923,6 +991,46 @@ for (let i = 0; i < 100; i++) {
 		line-height: 1.5;
 		color: #3c4f78;
 		max-width: 54ch;
+	}
+
+	/* Squished mode: keep act kickers out of the bottom third by pinning them
+	   near the top, out of the centered flex flow. */
+	.deck.squished .beat {
+		position: relative;
+	}
+
+	.beat--left {
+		align-items: flex-start;
+		text-align: left;
+	}
+
+	.deck.squished .beat__kicker {
+		position: absolute;
+		top: 20px;
+		left: 0;
+		right: 0;
+		margin: 0;
+	}
+
+	/* The kicker is pulled out of flow, but the rest of the content beats
+	   still centered as if it had the full 100vh — leaving a big empty gap
+	   under the kicker. Pull the remaining content up so it sits just below
+	   the kicker instead. Title slide is laid out as a row, so it's excluded
+	   and handled on its own below. */
+	.deck.squished .beat:not(.beat--title) {
+		justify-content: flex-start;
+		padding-top: 80px;
+	}
+
+	/* Squished mode: title slide gets nudged up and enlarged a bit since it's
+	   otherwise vertically centered and its lower half falls in the cut-off
+	   bottom third. */
+	.deck.squished .beat--title {
+		transform: translateY(-60px);
+	}
+
+	.deck.squished .beat__title-statement {
+		font-size: clamp(28px, 3vw, 40px);
 	}
 
 	.hl {
@@ -1054,6 +1162,93 @@ for (let i = 0; i < 100; i++) {
 
 	@media (max-width: 1100px) {
 		.stake-solo {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.recap-chain {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 18px;
+		width: min(900px, 92vw);
+		text-align: left;
+		align-self: flex-start;
+	}
+
+	.recap-chain li {
+		display: flex;
+		align-items: flex-start;
+		gap: 16px;
+		font-size: clamp(19px, 2vw, 26px);
+		line-height: 1.5;
+		color: var(--ink);
+	}
+
+	.recap-chain__num {
+		flex: none;
+		display: grid;
+		place-items: center;
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		background: var(--panel);
+		border: 1px solid var(--line);
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 16px;
+		font-weight: 700;
+		color: var(--accent);
+	}
+
+	.recap-chain__so {
+		margin: 22px 0 14px;
+		width: min(900px, 92vw);
+		text-align: left;
+		align-self: flex-start;
+		font-size: clamp(19px, 2vw, 24px);
+		font-weight: 600;
+		color: var(--muted);
+	}
+
+	.recap-split {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 20px;
+		width: min(1000px, 92vw);
+		margin: 0;
+		text-align: left;
+		align-self: flex-start;
+	}
+
+	.recap-split__card {
+		background: var(--panel);
+		border: 1px solid var(--line);
+		border-radius: 14px;
+		padding: 22px 26px;
+	}
+
+	.recap-split__card--accent {
+		border: 2px solid var(--accent);
+		background: #eaf2fd;
+	}
+
+	.recap-split__title {
+		margin: 0 0 8px;
+		font-size: clamp(21px, 2.2vw, 27px);
+		color: var(--heading);
+	}
+
+	.recap-split__body {
+		margin: 0;
+		font-size: clamp(16px, 1.7vw, 21px);
+		line-height: 1.5;
+		color: var(--muted);
+	}
+
+	@media (max-width: 760px) {
+		.recap-split {
 			grid-template-columns: 1fr;
 		}
 	}
@@ -1263,6 +1458,15 @@ for (let i = 0; i < 100; i++) {
 		overflow-x: auto;
 	}
 
+	.beat__code pre.code-card {
+		background: #1d2230;
+		box-shadow: 0 10px 28px rgba(23, 58, 110, 0.12);
+	}
+
+	.beat__code pre.code-card code {
+		color: #e0e0e0;
+	}
+
 	.beat__code code {
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 		font-size: clamp(14px, 1.3vw, 19px);
@@ -1284,6 +1488,7 @@ for (let i = 0; i < 100; i++) {
 	}
 
 	.beat--title {
+		position: relative;
 		flex-direction: row;
 		align-items: center;
 		justify-content: center;
@@ -1292,16 +1497,70 @@ for (let i = 0; i < 100; i++) {
 		padding: 32px clamp(20px, 3vw, 56px);
 	}
 
+	.beat__title-qr {
+		position: absolute;
+		top: clamp(80px, 10vw, 140px);
+		right: clamp(20px, 3vw, 40px);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.beat__title-qr-img {
+		width: clamp(110px, 12vw, 170px);
+		height: auto;
+		border-radius: 8px;
+		box-shadow: 0 6px 18px rgba(23, 58, 110, 0.12);
+	}
+
+	.beat__title-qr-link {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: clamp(12px, 1vw, 14px);
+		color: var(--muted);
+		text-decoration: none;
+	}
+
+	.beat__title-qr-link:hover {
+		text-decoration: underline;
+	}
+
 	.beat__title-copy {
 		flex: 0 0 auto;
 		width: min(420px, 34vw);
 	}
 
+	.beat__title-art-wrap {
+		flex: 1 1 auto;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		max-width: 46vw;
+	}
+
 	.beat__title-art {
 		flex: 1 1 auto;
 		width: min(1050px, 46vw);
-		max-width: 46vw;
+		max-width: 100%;
 		height: auto;
+	}
+
+	.beat__title-credit {
+		flex: none;
+		align-self: flex-end;
+		margin-bottom: clamp(20px, 4vw, 60px);
+		writing-mode: vertical-rl;
+		transform: rotate(180deg);
+		white-space: nowrap;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: clamp(11px, 1vw, 13px);
+		letter-spacing: 0.04em;
+		color: var(--muted);
+		text-decoration: none;
+	}
+
+	.beat__title-credit:hover {
+		text-decoration: underline;
 	}
 
 	.beat__title-statement {
@@ -1341,6 +1600,11 @@ for (let i = 0; i < 100; i++) {
 			width: 100%;
 		}
 
+		.beat__title-art-wrap {
+			max-width: 100%;
+			justify-content: center;
+		}
+
 		.beat__title-art {
 			width: min(560px, 65vw);
 			max-width: 100%;
@@ -1355,6 +1619,37 @@ for (let i = 0; i < 100; i++) {
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 		font-size: 17px;
 		color: #8296bb;
+	}
+
+	.deck-counter.squished {
+		bottom: auto;
+		top: 18px;
+	}
+
+	.squish-toggle {
+		position: fixed;
+		right: 90px;
+		bottom: 16px;
+		z-index: 10;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 11px;
+		letter-spacing: 0.02em;
+		color: #8296bb;
+		background: transparent;
+		border: 1px solid #d7e3f4;
+		border-radius: 4px;
+		padding: 3px 8px;
+		cursor: pointer;
+		opacity: 0.55;
+	}
+
+	.squish-toggle:hover {
+		opacity: 1;
+	}
+
+	.squish-toggle.squished {
+		color: #2a7de1;
+		border-color: #2a7de1;
 	}
 
 	.refs {

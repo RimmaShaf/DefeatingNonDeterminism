@@ -18,6 +18,9 @@
 				<li>determinism = discipline you must <em>add</em> (and pay for)</li>
 			</ul>
 		</div>
+
+		<img class="gl__diagram" src="{base}/talk-assets/groqLPU.jpg" alt="GPU vs Groq LPU chip die comparison" />
+
 		<div class="gl__pane gl__pane--lpu">
 			<h3 class="gl__name">Groq LPU</h3>
 			<p class="gl__tagline">scheduled at compile time</p>
@@ -35,8 +38,6 @@
 		test case ran <strong>~30× faster</strong> than the GPU baseline. Determinism didn't cost
 		performance — it <em>was</em> the performance strategy.
 	</p>
-
-	<img class="gl__diagram" src="{base}/talk-assets/grog-gpu-vs-lpu.png" alt="GPU vs Groq LPU architecture comparison" />
 </div>
 
 <style>
@@ -46,7 +47,8 @@
 
 	.gl__panes {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 1fr auto 1fr;
+		align-items: center;
 		gap: 24px;
 		text-align: left;
 	}
@@ -65,14 +67,14 @@
 
 	.gl__name {
 		margin: 0 0 4px;
-		font-size: clamp(24px, 2.6vw, 34px);
+		font-size: clamp(19px, 2vw, 26px);
 		color: #14356e;
 	}
 
 	.gl__tagline {
 		margin: 0 0 16px;
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: clamp(13px, 1.3vw, 16px);
+		font-size: clamp(11px, 1.1vw, 13px);
 		letter-spacing: 0.12em;
 		text-transform: uppercase;
 		color: #d6453d;
@@ -85,8 +87,8 @@
 	.gl__list {
 		margin: 0;
 		padding-left: 22px;
-		font-size: clamp(17px, 1.8vw, 23px);
-		line-height: 1.6;
+		font-size: clamp(14px, 1.4vw, 18px);
+		line-height: 1.5;
 		color: #3c4f78;
 	}
 
@@ -119,18 +121,21 @@
 
 	.gl__diagram {
 		display: block;
-		margin: 24px auto 0;
-		max-width: min(720px, 92%);
-		width: 100%;
+		width: min(420px, 38vw);
 		height: auto;
 		border-radius: 12px;
 		border: 1px solid #d7e3f4;
-		box-shadow: 0 10px 28px rgba(23, 58, 110, 0.08);
+		box-shadow: 0 14px 34px rgba(23, 58, 110, 0.12);
 	}
 
 	@media (max-width: 760px) {
 		.gl__panes {
 			grid-template-columns: 1fr;
+		}
+
+		.gl__diagram {
+			width: min(320px, 80%);
+			margin: 0 auto;
 		}
 	}
 </style>

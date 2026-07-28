@@ -692,7 +692,7 @@ function reset(){
   setReadout(state.scaffold.roSmall, state.smallSig.exp, false);
   state.scaffold.matchNote.classList.remove('ok');
   state.scaffold.matchNote.innerHTML = state.order==='A'
-    ? `exponents differ<br>by ${state.expDiff} ↕`
+    ? ``
     : `nothing to<br>match`;
 
   updatePlayBtn();
