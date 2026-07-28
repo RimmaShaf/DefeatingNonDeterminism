@@ -9,6 +9,7 @@
 	import CpuFactCheck from '$lib/talk/CpuFactCheck.svelte';
 	import GroqLpu from '$lib/talk/GroqLpu.svelte';
 	import ExhibitFrame from '$lib/talk/ExhibitFrame.svelte';
+	import WeightsPromptsMatrix from '$lib/talk/WeightsPromptsMatrix.svelte';
 	import BatchInvarianceCostChart from '$lib/components/modules/BatchInvarianceCostChart.svelte';
 	import DemoRecording from '$lib/components/modules/DemoRecording.svelte';
 	import KernelParallelismSimulator from '$lib/components/modules/KernelParallelismSimulator.svelte';
@@ -27,7 +28,7 @@
 
 	// Beats are numbered by DOM order — add/move/remove <section class="beat">
 	// freely, just keep TOTAL_BEATS equal to the number of sections.
-	const TOTAL_BEATS = 29;
+	const TOTAL_BEATS = 28;
 
 	const THINKING_MACHINES_IDS = new Set(['defeating_nondeterminism_blog', 'batch_invariant_ops']);
 
@@ -236,7 +237,7 @@ for (let i = 0; i < 100; i++) {
 					Same model, same questions — and accuracy is a <span class="hl">box plot</span>.
 					Determinism makes an eval score a fact, not a distribution.
 				</p>
-				<ul class="stake-solo__list">
+				<!-- <ul class="stake-solo__list">
 					<li>
 						Leaderboards report a single number. Underneath, that number moved every time
 						someone reran the benchmark.
@@ -249,7 +250,7 @@ for (let i = 0; i < 100; i++) {
 						Non-determinism doesn't just add noise — it erodes what “state of the art” is even
 						supposed to mean.
 					</li>
-				</ul>
+				</ul> -->
 				<p class="stake-solo__source">“Give Me FP32 or Give Me Death?” · Yuan et al., 2025</p>
 			</div>
 		</div>
@@ -271,14 +272,14 @@ for (let i = 0; i < 100; i++) {
 					every run</span>. It could at least be run-to-run deterministic.
 				</p>
 				<ul class="stake-solo__list">
-					<li>
+					<!-- <li>
 						Regulatory approval assumes a fixed, auditable pipeline — not one that quietly
 						reshuffles floating-point operations under load.
 					</li>
 					<li>
 						“The model said something different on the retest” is not an answer a clinician —
 						or a court — will accept.
-					</li>
+					</li> -->
 					<li>
 						FDA cleared first patient-facing GenAI app.<span class="hl">Is it really so?</span>.
 					</li>
@@ -321,7 +322,7 @@ for (let i = 0; i < 100; i++) {
 		<div class="beat__demo beat__demo--bare beat__demo--wide">
 			<WeightsFileGag />
 		</div>
-		<p class="beat__sub">I downloaded gemma4 weights. It is a file of numbers. Frozen. So who's changing the answer?</p>
+		<!-- <p class="beat__sub">I downloaded gemma4 weights. It is a file of numbers. Frozen. So who's changing the answer?</p> -->
 	</section>
 
 	<!-- ═══════════ ACT II · THE MECHANISM ═══════════ -->
@@ -521,24 +522,23 @@ identical = torch.equal(logits_1, logits_2)  # bitwise comparison`}</code></pre>
 			each kernel groups the same sum differently.
 		</p>
 
-		<div class="code-card">
-<span class="cmt"># but not batch-invariant</span>
-B = 2048
-D = 4096
-a = torch.linspace(-1000, 1000, B*D).reshape(B, D)
-b = torch.linspace(-1000, 1000, D*D).reshape(D, D)
+		<pre class="code-card"><code><span class="cmt"># but not batch-invariant</span>
+B = <span class="num">2048</span>
+D = <span class="num">4096</span>
+a = torch.linspace(-<span class="num">1000</span>, <span class="num">1000</span>, B*D).reshape(B, D)
+b = torch.linspace(-<span class="num">1000</span>, <span class="num">1000</span>, D*D).reshape(D, D)
+
 <span class="cmt"># matrix-vector: take the first row of the batch, then multiply</span>
-out1 = torch.mm(a[:1], b)
+out1 = torch.mm(a[:<span class="num">1</span>], b)
+
 <span class="cmt"># matrix-matrix: multiply the whole batch, then take the first row</span>
-out2 = torch.mm(a, b)[:1]
-percentage_difference = ((out1 - out2).abs() / out1.abs()) * <span class="num">100</span>
+out2 = torch.mm(a, b)[:<span class="num">1</span>]
+
+percentage_difference = ((out1 - out2).abs() / out1.abs()) * <span class="num">100</span></code></pre>
+
+		<div class="beat__demo beat__demo--bare beat__demo--wide">
+			<WeightsPromptsMatrix />
 		</div>
-		<!-- <div class="beat__demo beat__demo--bare beat__demo--wide">
-			<ExhibitFrame
-				src="/talk-embeds/matmul-batch-invariance.html"
-				title="Same 8 terms of a dot product, reduced two ways: tree vs sequential"
-			/>
-		</div> -->
 	</section>
 
 
@@ -598,13 +598,13 @@ for out in outputs:
 	<!-- EPILOGUE — cranking temperature doesn't break the fix -->
 	<section class="beat beat--pattern" style={patternStyle}>
 		<p class="beat__kicker">Epilogue · Turning up the heat</p>
-		<h1 class="beat__statement">Okay, but that was <span class="hl">temperature 0.</span></h1>
-		<p class="beat__sub">
+		<h1 class="beat__statement">Deterministic does not mean <span class="hl">predictable</span></h1>
+		<!-- <p class="beat__sub">
 			Temperature 0 is greedy decoding — barely any randomness to begin with. Does batch
 			invariance still hold once the sampler is actually <span class="hl">sampling</span>?
 			Same setup, same pinned <span class="mono">seed=42</span>, temperature swept from
 			<span class="mono">0.3</span> to <span class="mono">1.0</span>.
-		</p>
+		</p> -->
 		<div class="beat__demo beat__demo--wide">
 			<PoemVarianceVllmTempDemo />
 		</div>
@@ -615,6 +615,32 @@ for out in outputs:
 			kernels pins down every draw, however noisy the distribution gets.<br />
 			<span class="hl">The randomness you asked for. Nothing more.</span>
 		</p>
+	</section>
+
+	<!-- EPILOGUE — the gotcha: determinism is pinned to one stack -->
+	<section class="beat">
+		<p class="beat__kicker">Epilogue · The fine print</p>
+		<h1 class="beat__statement">There's a <span class="hl">massive gotcha</span></h1>
+		<p class="beat__sub">
+			Everything tonight is <span class="hl">run-to-run</span> determinism — same box,
+			same GPU, same software stack, same weights, every single time.
+		</p>
+		<p class="beat__sub">
+			Bump the <span class="mono">vLLM</span> version. Switch to a different GPU. Same seed,
+			same prompt — and you get a <span class="hl">different set of numbers</span> in the
+			logits.
+		</p>
+	</section>
+
+	<!-- ANOTHER WAY — GROQ LPU -->
+	<section class="beat">
+		<p class="beat__kicker">Act IV · Another way</p>
+		<h1 class="beat__statement">
+			Or build a machine that <span class="hl">never improvises</span>.
+		</h1>
+		<div class="beat__demo beat__demo--bare beat__demo--wide">
+			<GroqLpu />
+		</div>
 	</section>
 
 	<!-- ═══════════ ACT III · THE FACT-CHECKS ═══════════ -->
@@ -658,6 +684,54 @@ for out in outputs:
 		</div>
 	</section>
 
+
+		<!-- EPILOGUE — same experiment, different provider -->
+	<section class="beat beat--pattern" style={patternStyle}>
+		<p class="beat__kicker">Epilogue · Same experiment, different provider</p>
+		<h1 class="beat__statement">And on <span class="hl">Groq</span>?</h1>
+		<p class="beat__sub">
+			The same 100-call experiment against <span class="mono">openai/gpt-oss-120b</span> on Groq —
+			this time with a fixed <span class="mono">seed</span> on top of temperature 0.
+		</p>
+		<details class="beat__code">
+			<summary>Show the exact API call</summary>
+			<pre><code>{`const PROMPT =
+  'Write a highly creative four-line poem about a clock that counts backward.';
+
+for (let i = 0; i < 100; i++) {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + process.env.GROQ_API_KEY
+    },
+    body: JSON.stringify({
+      model: 'openai/gpt-oss-120b',
+      max_completion_tokens: 1024,
+      reasoning_effort: 'low',
+      temperature: 0,
+      seed: 700, // pinned seed, on top of temperature 0
+      messages: [{ role: 'user', content: PROMPT }]
+    })
+  });
+  const data = await res.json();
+  console.log(data.choices[0].message.content);
+}`}</code></pre>
+		</details>
+		<div class="beat__demo beat__demo--wide">
+			<PoemVarianceGroqDemo />
+		</div>
+		<p class="beat__sub">
+			100 runs, seed pinned — still <span class="hl">three different poems</span>. Identical
+			through line 3, splitting at <span class="hl">one near-tied token</span> in line 4. Dense
+			<span class="mono">llama-3.3-70b</span>, same test: one word flips
+			(<span class="mono">noon → dawn</span>) — but never within a burst. 46 simultaneous calls:
+			identical. Spread across minutes: drift. The divergence follows the
+			<span class="hl">batching windows</span>, not the model.<br />
+			<span class="hl">Deterministic hardware ≠ deterministic API.</span>
+		</p>
+	</section>
+
 	<!-- ═══════════ ACT IV · THE RESOLUTION ═══════════ -->
 
 	<!-- THE FIX & THE PRICE -->
@@ -677,16 +751,7 @@ for out in outputs:
 		</div>
 	</section> -->
 
-	<!-- ANOTHER WAY — GROQ LPU -->
-	<section class="beat">
-		<p class="beat__kicker">Act IV · Another way</p>
-		<h1 class="beat__statement">
-			Or build a machine that <span class="hl">never improvises</span>.
-		</h1>
-		<div class="beat__demo beat__demo--bare beat__demo--wide">
-			<GroqLpu />
-		</div>
-	</section>
+	
 
 	<!-- TONIGHT, AT HOME -->
 	<!-- <section class="beat">
@@ -932,6 +997,7 @@ for (let i = 0; i < 100; i++) {
 		line-height: 1.65;
 		overflow-x: auto;
 		white-space: pre;
+		text-align: left;
   	}
 
 	.code-card .cmt { color: #8890a8; }
