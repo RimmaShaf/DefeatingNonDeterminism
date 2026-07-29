@@ -804,7 +804,7 @@ for out in outputs:
 	<!-- RECAP -->
 	<section class="beat">
 		<p class="beat__kicker">Recap</p>
-		<h1 class="beat__statement">How we got <span class="hl">non-deterministic</span> answers.</h1>
+		<h1 class="beat__statement">Non-determinism <span class="hl">root cause</span> </h1>
 		<ol class="recap-chain">
 			<li>
 				<span class="recap-chain__num">1</span>
@@ -856,7 +856,7 @@ for out in outputs:
 
 
 
-		<!-- EPILOGUE — same experiment, different provider -->
+		<!-- EPILOGUE — additional info-->
 	<section class="beat beat--pattern" style={patternStyle}>
 		<p class="beat__kicker">Epilogue · Same experiment, different provider</p>
 		<h1 class="beat__statement">And on <span class="hl">Groq</span>?</h1>

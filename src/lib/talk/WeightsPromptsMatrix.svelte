@@ -50,10 +50,8 @@
 	</div>
 
 	<p class="wpm__caption">
-		The toy demo above was 4×3. A real weight matrix is <strong>thousands of columns of
-		float16/bf16</strong>, fixed for every request. The three rows on the left are whoever
-		happened to land in this batch together — three strangers' prompts, none of which should
-		ever change each other's answer.
+		The three rows on the left are whoever happened to land in this batch together — three
+		strangers' prompts, none of which should ever change each other's answer.
 	</p>
 </div>
 

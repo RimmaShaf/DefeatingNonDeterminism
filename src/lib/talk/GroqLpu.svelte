@@ -26,7 +26,7 @@
 			<p class="gl__tagline">scheduled at compile time</p>
 			<ul class="gl__list">
 				<li>the compiler plans <em>every add, every cycle</em> before the first byte arrives</li>
-				<li>no dynamic scheduler, no atomics racing for an accumulator</li>
+				<li>no dynamic scheduler</li>
 				<li>one fixed reduction order — the same bits, by construction</li>
 				<li>determinism = a property of the <em>architecture</em>, not a tax</li>
 			</ul>
