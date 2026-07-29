@@ -514,7 +514,7 @@ for (let i = 0; i < 100; i++) {
 	<!-- LIVE, LOCAL — GPT-2 forward pass determinism, with a safe fallback -->
 	<section class="beat">
 		<p class="beat__kicker">Act II · Proof, live</p>
-		<h1 class="beat__statement">Barebones LLM <span class="hl">inference</span> demo</h1>
+		<h1 class="beat__statement">Barebones LLM <span class="hl">inference</span></h1>
 		<!-- <p class="beat__sub">
 			A real FastAPI + PyTorch process on this machine loads <span class="mono">gpt2</span>, runs
 			the same prompt twice, and compares the logits <span class="hl">bitwise</span>.
@@ -664,13 +664,13 @@ for out in outputs:
 		<div class="beat__demo beat__demo--wide">
 			<PoemVarianceVllmTempDemo />
 		</div>
-		<p class="beat__sub">
+		<!-- <p class="beat__sub">
 			At <span class="mono">temperature=1.0</span> the model's grip on the prompt slips — it
 			degenerates into <span class="hl">near-gibberish</span>. But it's the
 			<span class="hl">same gibberish, all 30 times.</span> A fixed seed plus deterministic
 			kernels pins down every draw, however noisy the distribution gets.<br />
 			<span class="hl">The randomness you asked for. Nothing more.</span>
-		</p>
+		</p> -->
 	</section>
 
 	<!-- EPILOGUE — the gotcha: determinism is pinned to one stack -->
@@ -717,7 +717,6 @@ for out in outputs:
 		</div>
 	</section> -->
 
-	FACT-CHECK #2 — LOCAL SERVING
 	<!-- <section class="beat">
 		<p class="beat__kicker">Act III · Fact-check #2</p>
 		<h1 class="beat__statement">
@@ -729,7 +728,7 @@ for out in outputs:
 		</div>
 	</section>
 
-	<!-- FACT-CHECK #3 — CPUs -->
+	
 	<section class="beat">
 		<p class="beat__kicker">Act III · Fact-check #3</p>
 		<h1 class="beat__statement">
@@ -803,29 +802,37 @@ for out in outputs:
 	
 
 	<!-- RECAP -->
-	<section class="beat beat--left">
+	<section class="beat">
 		<p class="beat__kicker">Recap</p>
 		<h1 class="beat__statement">How we got <span class="hl">non-deterministic</span> answers.</h1>
 		<ol class="recap-chain">
 			<li>
 				<span class="recap-chain__num">1</span>
-				Floating-point numbers are approximations — every add or multiply can carry a
-				<span class="hl">rounding error</span>.
+				<span class="recap-chain__text">
+					Floating-point numbers are approximations — every add or multiply can carry a
+					<span class="hl">rounding error</span>.
+				</span>
 			</li>
 			<li>
 				<span class="recap-chain__num">2</span>
-				Floating-point addition isn't associative, so the
-				<span class="hl">order of operations</span> changes the result.
+				<span class="recap-chain__text">
+					Floating-point addition isn't associative, so the
+					<span class="hl">order of operations</span> changes the result.
+				</span>
 			</li>
 			<li>
 				<span class="recap-chain__num">3</span>
-				GPUs don't guarantee that order — <span class="hl">no atomic adds</span> pin down the
-				sequence in the forward pass.
+				<span class="recap-chain__text">
+					While GPUs are random due to atomic adds and more, 
+					forward pass is deterministic.
+				</span>
 			</li>
 			<li>
 				<span class="recap-chain__num">4</span>
-				Matmul and friends aren't <span class="hl">batch-invariant</span> — the kernel picks a
-				different reduction order depending on what else is in the batch.
+				<span class="recap-chain__text">
+					Matmul and friends aren't <span class="hl">batch-invariant</span> — the kernel
+					picks a different reduction order depending on what else is in the batch.
+				</span>
 			</li>
 		</ol>
 		<p class="recap-chain__so">So either:</p>
@@ -999,10 +1006,6 @@ for (let i = 0; i < 100; i++) {
 		position: relative;
 	}
 
-	.beat--left {
-		align-items: flex-start;
-		text-align: left;
-	}
 
 	.deck.squished .beat__kicker {
 		position: absolute;
@@ -1168,14 +1171,13 @@ for (let i = 0; i < 100; i++) {
 
 	.recap-chain {
 		list-style: none;
-		margin: 0;
+		margin: 0 auto;
 		padding: 0;
 		display: flex;
 		flex-direction: column;
 		gap: 18px;
 		width: min(900px, 92vw);
 		text-align: left;
-		align-self: flex-start;
 	}
 
 	.recap-chain li {
@@ -1185,6 +1187,10 @@ for (let i = 0; i < 100; i++) {
 		font-size: clamp(19px, 2vw, 26px);
 		line-height: 1.5;
 		color: var(--ink);
+	}
+
+	.recap-chain__text {
+		flex: 1 1 auto;
 	}
 
 	.recap-chain__num {
@@ -1203,10 +1209,9 @@ for (let i = 0; i < 100; i++) {
 	}
 
 	.recap-chain__so {
-		margin: 22px 0 14px;
-		width: min(900px, 92vw);
-		text-align: left;
-		align-self: flex-start;
+		margin: 22px auto 14px;
+		width: fit-content;
+		text-align: center;
 		font-size: clamp(19px, 2vw, 24px);
 		font-weight: 600;
 		color: var(--muted);
@@ -1217,9 +1222,8 @@ for (let i = 0; i < 100; i++) {
 		grid-template-columns: 1fr 1fr;
 		gap: 20px;
 		width: min(1000px, 92vw);
-		margin: 0;
+		margin: 0 auto;
 		text-align: left;
-		align-self: flex-start;
 	}
 
 	.recap-split__card {
